@@ -64,26 +64,28 @@ Rang/
 ├── wp-config.php                 # تنظیمات پایه WordPress + بارگذار .env (fail-closed)
 ├── .htaccess                     # قوانین سرور، امنیت و کش
 ├── .env.example                  # الگوی متغیرهای محیطی (کپی به .env و تکمیل کنید)
+├── .github/workflows/            # گیت استاتیک CI (PHP 8.3 lint + production gate)
 ├── README.md                     # مستندات پروژه
 ├── GO_LIVE_PHP_HOSTING_FA.md     # راهنمای گام‌به‌گام استقرار روی هاست PHP
 ├── docs/                         # ADR معماری + مدل تهدید (از استقرار عمومی مستثناست)
-├── tests/                        # گیت‌های قابل‌تکرار کد (PHP CLI)
+├── tests/                        # گیت‌های قابل‌تکرار کد (اجراشده در CI)
 └── wp-content/
+    ├── uploads/.htaccess         # ممنوعیت اجرای PHP در پوشهٔ آپلود
     ├── themes/
     │   └── bamero/               # تم سفارشی بامرو
     │       ├── css/              # متغیرها، آیکون‌ها، استایل‌ها، WooCommerce و RTL
     │       ├── js/               # اسکریپت‌های اصلی
-    │       ├── images/           # لوگو، فاوآیکون، placeholder
-    │       ├── assets/fonts/     # فونت Vazirmatn (woff2)
+    │       ├── images/           # لوگو و فاوآیکون
+    │       ├── assets/fonts/     # فونت Vazirmatn (woff2 + مجوز OFL)
     │       ├── woocommerce/      # قالب‌های بازنویسی‌شده WooCommerce
     │       ├── functions.php     # توابع تم
-    │       ├── header.php / footer.php / index.php / front-page.php
+    │       ├── header.php / footer.php / index.php / front-page.php / page.php
     │       └── 404.php / about.php / contact.php
     └── plugins/
         ├── bamero-production-core/    # هستهٔ production (امنیت، outbox پیامک، health)
         ├── bamero-mobile-auth/        # احراز هویت موبایل‌محور (OTP)
         ├── bamero-zarinpal-gateway/   # درگاه پرداخت زرین‌پال v4
-        ├── bamero-woocommerce-setup/  # راه‌اندازی دسته‌ها/محصولات نمونه
+        ├── bamero-woocommerce-setup/  # کاتالوگ اولیه (۲۰ محصول + تصاویر) و تنظیمات ووکامرس
         ├── bamero-custom-plugin/      # ساخت صفحات محتوا
         └── bamero-essential-plugins/  # نصب‌کنندهٔ افزونه‌های پیشنهادی
 ```
