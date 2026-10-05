@@ -18,7 +18,7 @@ define('BAMERO_WC_SETUP_IMAGE_DIR', BAMERO_WC_SETUP_DIR . 'assets/products/');
 function bamero_wc_setup_schema_validate() {
     if (!class_exists('WooCommerce')) return false;
     if (!function_exists('wp_insert_post') || !function_exists('wp_insert_term') || !function_exists('update_option')) return false;
-    $currency = 'IRT';
+    $currency = 'IRR';
     $country = 'IR:TE';
     $weight = 'kg';
     $dimension = 'cm';
@@ -79,26 +79,26 @@ function bamero_create_product_tags() {
  */
 function bamero_catalog_definition() {
     return array(
-        array('name' => 'رنگ پلاستیک مات بامرو', 'sku' => 'RP-PL-001', 'price' => '245700', 'cat' => 'رنگ ساختمان', 'tags' => array('۵ لیتر', 'قابل شستشو'), 'stock' => 42, 'description' => 'رنگ پلاستیک مات مناسب فضاهای داخلی.', 'color_code' => '#F4F1EA'),
-        array('name' => 'روغن الیف براق درجه یک', 'sku' => 'RP-OL-002', 'price' => '389400', 'cat' => 'رنگ ساختمان', 'tags' => array('پرفروش'), 'stock' => 28, 'description' => 'پوشش براق و بادوام برای سطوح چوبی.', 'color_code' => '#D9B36C'),
-        array('name' => 'رنگ اکریلیک نیمه‌براق', 'sku' => 'RP-AC-003', 'price' => '420350', 'cat' => 'رنگ ساختمان', 'tags' => array('قابل شستشو'), 'stock' => 36, 'description' => 'رنگ اکریلیک کم‌بو با پوشش یکنواخت.', 'color_code' => '#DCE8EF'),
-        array('name' => 'ضد آب نانو بام', 'sku' => 'RP-NA-004', 'price' => '675250', 'cat' => 'ضد آب', 'tags' => array('ضدآب'), 'stock' => 19, 'description' => 'محافظ نانو برای سطوح در معرض رطوبت.', 'color_code' => '#B7D5E5'),
-        array('name' => 'رنگ روغنی سوپر لاکچری', 'sku' => 'RP-OG-005', 'price' => '512800', 'cat' => 'رنگ ساختمان', 'tags' => array('۱۰ لیتر'), 'stock' => 31, 'description' => 'رنگ روغنی با دوام و جلای بالا.', 'color_code' => '#E8D6C0'),
-        array('name' => 'بتونه سنگی آماده', 'sku' => 'RP-BT-006', 'price' => '185650', 'cat' => 'چسب و بتونه', 'tags' => array('پرفروش'), 'stock' => 57, 'description' => 'بتونه آماده برای ترمیم و زیرسازی.', 'color_code' => '#D4D0C8'),
-        array('name' => 'رنگ ترافیک زرد', 'sku' => 'RP-TR-007', 'price' => '298900', 'cat' => 'رنگ صنعتی', 'tags' => array('VOC پایین'), 'stock' => 24, 'description' => 'رنگ مقاوم برای خط‌کشی و سطوح صنعتی.', 'color_code' => '#E5B93F'),
-        array('name' => 'چسب چوب صنعتی', 'sku' => 'RP-CH-008', 'price' => '156250', 'cat' => 'چسب و بتونه', 'tags' => array('پرفروش'), 'stock' => 63, 'description' => 'چسب چوب صنعتی با گیرش مطمئن.', 'color_code' => '#D6A85F'),
-        array('name' => 'رنگ اپوکسی کف', 'sku' => 'RP-EP-009', 'price' => '890750', 'cat' => 'رنگ صنعتی', 'tags' => array('۱۰ لیتر'), 'stock' => 12, 'description' => 'پوشش اپوکسی مقاوم در برابر سایش.', 'color_code' => '#7B8790'),
-        array('name' => 'حلال تینر فوری', 'sku' => 'RP-TH-010', 'price' => '198450', 'cat' => 'ابزار نقاشی', 'tags' => array('۵ لیتر'), 'stock' => 48, 'description' => 'حلال مناسب رنگ‌های فوری و صنعتی.', 'color_code' => '#E7E1D0'),
-        array('name' => 'رنگ نیم‌پلاستیک مخملی بامرو', 'sku' => 'RP-SM-011', 'price' => '268900', 'cat' => 'رنگ ساختمان', 'tags' => array('۵ لیتر', 'قابل شستشو'), 'stock' => 34, 'description' => 'رنگ نیم‌پلاستیک مخملی با پوشش مات و یکنواخت برای دیوارهای داخلی.', 'color_code' => '#F7F4EC'),
-        array('name' => 'رنگ ضد حرارت کوره‌ای بامرو', 'sku' => 'RP-HR-012', 'price' => '745000', 'cat' => 'رنگ صنعتی', 'tags' => array('۱۰ لیتر'), 'stock' => 16, 'description' => 'رنگ مقاوم به حرارت بالا برای سطوح فلزی کوره و تجهیزات صنعتی.', 'color_code' => '#2B2B2B'),
-        array('name' => 'پرایمر ضد زنگ فسفاته بامرو', 'sku' => 'RP-ZN-013', 'price' => '312500', 'cat' => 'رنگ صنعتی', 'tags' => array('پرفروش'), 'stock' => 45, 'description' => 'پرایمر فسفاته ضد زنگ برای چسبندگی و محافظت سطوح فلزی.', 'color_code' => '#8A8F8C'),
-        array('name' => 'چسب کاشی و سرامیک پودری بامرو', 'sku' => 'RP-TL-014', 'price' => '142800', 'cat' => 'چسب و بتونه', 'tags' => array('پرفروش'), 'stock' => 72, 'description' => 'چسب پودری کاشی و سرامیک با چسبندگی بالا برای سطوح داخلی و خارجی.', 'color_code' => '#E3E0D8'),
-        array('name' => 'ضد آب پشت‌بام پلی‌یورتان بامرو', 'sku' => 'RP-RF-015', 'price' => '598400', 'cat' => 'ضد آب', 'tags' => array('ضدآب'), 'stock' => 22, 'description' => 'پوشش ضد آب پلی‌یورتان کشسان برای عایق‌کاری پشت‌بام و تراس.', 'color_code' => '#9AA3A8'),
-        array('name' => 'رنگ اکریلیک نمای ضد جلبک بامرو', 'sku' => 'RP-EX-016', 'price' => '356900', 'cat' => 'رنگ ساختمان', 'tags' => array('۱۰ لیتر', 'قابل شستشو'), 'stock' => 29, 'description' => 'رنگ اکریلیک نمای ساختمان با خاصیت ضد جلبک و مقاوم به باران.', 'color_code' => '#EFE9DA'),
-        array('name' => 'غلطک نقاشی نمدی ۲۵ سانتی بامرو', 'sku' => 'RP-RL-017', 'price' => '89000', 'cat' => 'ابزار نقاشی', 'tags' => array('پرفروش'), 'stock' => 88, 'description' => 'غلطک نمدی ۲۵ سانتی برای پوشش سریع و یکنواخت سطوح بزرگ.', 'color_code' => '#C9C4B8'),
-        array('name' => 'قلم‌مو نقاشی حرفه‌ای ۳ اینچ بامرو', 'sku' => 'RP-BR-018', 'price' => '64500', 'cat' => 'ابزار نقاشی', 'tags' => array('۳ اینچ'), 'stock' => 95, 'description' => 'قلم‌مو حرفه‌ای ۳ اینچ با موی مصنوعی برای لبه‌ها و جزئیات.', 'color_code' => '#B8926A'),
-        array('name' => 'رنگ خودرو متالیک پایه آب بامرو', 'sku' => 'RP-CR-019', 'price' => '925000', 'cat' => 'رنگ خودرو', 'tags' => array('۱۰ لیتر'), 'stock' => 11, 'description' => 'رنگ متالیک پایه آب خودرو با جلای عمیق و مقاومت بالا.', 'color_code' => '#1E4D8C'),
-        array('name' => 'آستری فیلر خودرو بامرو', 'sku' => 'RP-PF-020', 'price' => '478300', 'cat' => 'رنگ خودرو', 'tags' => array('پرفروش'), 'stock' => 26, 'description' => 'آستری فیلر خودرو برای پرکردن ناهمواری و آماده‌سازی رنگ نهایی.', 'color_code' => '#A9ADB0'),
+        array('name' => 'رنگ پلاستیک مات بامرو', 'sku' => 'RP-PL-001', 'price' => '2457000', 'cat' => 'رنگ ساختمان', 'tags' => array('۵ لیتر', 'قابل شستشو'), 'stock' => 42, 'description' => 'رنگ پلاستیک مات مناسب فضاهای داخلی.', 'color_code' => '#F4F1EA'),
+        array('name' => 'روغن الیف براق درجه یک', 'sku' => 'RP-OL-002', 'price' => '3894000', 'cat' => 'رنگ ساختمان', 'tags' => array('پرفروش'), 'stock' => 28, 'description' => 'پوشش براق و بادوام برای سطوح چوبی.', 'color_code' => '#D9B36C'),
+        array('name' => 'رنگ اکریلیک نیمه‌براق', 'sku' => 'RP-AC-003', 'price' => '4203500', 'cat' => 'رنگ ساختمان', 'tags' => array('قابل شستشو'), 'stock' => 36, 'description' => 'رنگ اکریلیک کم‌بو با پوشش یکنواخت.', 'color_code' => '#DCE8EF'),
+        array('name' => 'ضد آب نانو بام', 'sku' => 'RP-NA-004', 'price' => '6752500', 'cat' => 'ضد آب', 'tags' => array('ضدآب'), 'stock' => 19, 'description' => 'محافظ نانو برای سطوح در معرض رطوبت.', 'color_code' => '#B7D5E5'),
+        array('name' => 'رنگ روغنی سوپر لاکچری', 'sku' => 'RP-OG-005', 'price' => '5128000', 'cat' => 'رنگ ساختمان', 'tags' => array('۱۰ لیتر'), 'stock' => 31, 'description' => 'رنگ روغنی با دوام و جلای بالا.', 'color_code' => '#E8D6C0'),
+        array('name' => 'بتونه سنگی آماده', 'sku' => 'RP-BT-006', 'price' => '1856500', 'cat' => 'چسب و بتونه', 'tags' => array('پرفروش'), 'stock' => 57, 'description' => 'بتونه آماده برای ترمیم و زیرسازی.', 'color_code' => '#D4D0C8'),
+        array('name' => 'رنگ ترافیک زرد', 'sku' => 'RP-TR-007', 'price' => '2989000', 'cat' => 'رنگ صنعتی', 'tags' => array('VOC پایین'), 'stock' => 24, 'description' => 'رنگ مقاوم برای خط‌کشی و سطوح صنعتی.', 'color_code' => '#E5B93F'),
+        array('name' => 'چسب چوب صنعتی', 'sku' => 'RP-CH-008', 'price' => '1562500', 'cat' => 'چسب و بتونه', 'tags' => array('پرفروش'), 'stock' => 63, 'description' => 'چسب چوب صنعتی با گیرش مطمئن.', 'color_code' => '#D6A85F'),
+        array('name' => 'رنگ اپوکسی کف', 'sku' => 'RP-EP-009', 'price' => '8907500', 'cat' => 'رنگ صنعتی', 'tags' => array('۱۰ لیتر'), 'stock' => 12, 'description' => 'پوشش اپوکسی مقاوم در برابر سایش.', 'color_code' => '#7B8790'),
+        array('name' => 'حلال تینر فوری', 'sku' => 'RP-TH-010', 'price' => '1984500', 'cat' => 'ابزار نقاشی', 'tags' => array('۵ لیتر'), 'stock' => 48, 'description' => 'حلال مناسب رنگ‌های فوری و صنعتی.', 'color_code' => '#E7E1D0'),
+        array('name' => 'رنگ نیم‌پلاستیک مخملی بامرو', 'sku' => 'RP-SM-011', 'price' => '2689000', 'cat' => 'رنگ ساختمان', 'tags' => array('۵ لیتر', 'قابل شستشو'), 'stock' => 34, 'description' => 'رنگ نیم‌پلاستیک مخملی با پوشش مات و یکنواخت برای دیوارهای داخلی.', 'color_code' => '#F7F4EC'),
+        array('name' => 'رنگ ضد حرارت کوره‌ای بامرو', 'sku' => 'RP-HR-012', 'price' => '7450000', 'cat' => 'رنگ صنعتی', 'tags' => array('۱۰ لیتر'), 'stock' => 16, 'description' => 'رنگ مقاوم به حرارت بالا برای سطوح فلزی کوره و تجهیزات صنعتی.', 'color_code' => '#2B2B2B'),
+        array('name' => 'پرایمر ضد زنگ فسفاته بامرو', 'sku' => 'RP-ZN-013', 'price' => '3125000', 'cat' => 'رنگ صنعتی', 'tags' => array('پرفروش'), 'stock' => 45, 'description' => 'پرایمر فسفاته ضد زنگ برای چسبندگی و محافظت سطوح فلزی.', 'color_code' => '#8A8F8C'),
+        array('name' => 'چسب کاشی و سرامیک پودری بامرو', 'sku' => 'RP-TL-014', 'price' => '1428000', 'cat' => 'چسب و بتونه', 'tags' => array('پرفروش'), 'stock' => 72, 'description' => 'چسب پودری کاشی و سرامیک با چسبندگی بالا برای سطوح داخلی و خارجی.', 'color_code' => '#E3E0D8'),
+        array('name' => 'ضد آب پشت‌بام پلی‌یورتان بامرو', 'sku' => 'RP-RF-015', 'price' => '5984000', 'cat' => 'ضد آب', 'tags' => array('ضدآب'), 'stock' => 22, 'description' => 'پوشش ضد آب پلی‌یورتان کشسان برای عایق‌کاری پشت‌بام و تراس.', 'color_code' => '#9AA3A8'),
+        array('name' => 'رنگ اکریلیک نمای ضد جلبک بامرو', 'sku' => 'RP-EX-016', 'price' => '3569000', 'cat' => 'رنگ ساختمان', 'tags' => array('۱۰ لیتر', 'قابل شستشو'), 'stock' => 29, 'description' => 'رنگ اکریلیک نمای ساختمان با خاصیت ضد جلبک و مقاوم به باران.', 'color_code' => '#EFE9DA'),
+        array('name' => 'غلطک نقاشی نمدی ۲۵ سانتی بامرو', 'sku' => 'RP-RL-017', 'price' => '890000', 'cat' => 'ابزار نقاشی', 'tags' => array('پرفروش'), 'stock' => 88, 'description' => 'غلطک نمدی ۲۵ سانتی برای پوشش سریع و یکنواخت سطوح بزرگ.', 'color_code' => '#C9C4B8'),
+        array('name' => 'قلم‌مو نقاشی حرفه‌ای ۳ اینچ بامرو', 'sku' => 'RP-BR-018', 'price' => '645000', 'cat' => 'ابزار نقاشی', 'tags' => array('۳ اینچ'), 'stock' => 95, 'description' => 'قلم‌مو حرفه‌ای ۳ اینچ با موی مصنوعی برای لبه‌ها و جزئیات.', 'color_code' => '#B8926A'),
+        array('name' => 'رنگ خودرو متالیک پایه آب بامرو', 'sku' => 'RP-CR-019', 'price' => '9250000', 'cat' => 'رنگ خودرو', 'tags' => array('۱۰ لیتر'), 'stock' => 11, 'description' => 'رنگ متالیک پایه آب خودرو با جلای عمیق و مقاومت بالا.', 'color_code' => '#1E4D8C'),
+        array('name' => 'آستری فیلر خودرو بامرو', 'sku' => 'RP-PF-020', 'price' => '4783000', 'cat' => 'رنگ خودرو', 'tags' => array('پرفروش'), 'stock' => 26, 'description' => 'آستری فیلر خودرو برای پرکردن ناهمواری و آماده‌سازی رنگ نهایی.', 'color_code' => '#A9ADB0'),
     );
 }
 
@@ -389,7 +389,7 @@ function bamero_configure_woocommerce() {
     if (!bamero_wc_setup_schema_is_validated()) return;
 
     // Store locale / units.
-    update_option('woocommerce_currency', 'IRT');
+    update_option('woocommerce_currency', 'IRR');
     update_option('woocommerce_default_country', 'IR:TE');
     update_option('woocommerce_weight_unit', 'kg');
     update_option('woocommerce_dimension_unit', 'cm');

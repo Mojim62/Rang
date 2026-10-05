@@ -18,7 +18,7 @@ function bamero_persian_digits($str) {
 }
 
 /**
- * Format product price with Persian digits + تومان.
+ * Format product price with Persian digits (تومان یا ریال بر اساس ارز فعال).
  */
 function bamero_format_price_html($product) {
     if (!is_object($product) || !method_exists($product, 'get_price')) {

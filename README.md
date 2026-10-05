@@ -18,7 +18,7 @@
 
 ### ✅ ویژگی‌های WooCommerce
 - **دسته‌بندی‌ها و برچسب‌های محصولات** برای سازماندهی بهتر.
-- **فیلترهای پیشرفته** (بر اساس قیمت، رنگ، برند، دسته‌بندی).
+- **مرور و دسته‌بندی محصولات** با آرشیو دسته و برچسب؛ فیلتر قیمت استاندارد ووکامرس در دسترس است (فیلتر رنگ/برند در نقشه راه).
 - **سبد خرید و تسویه حساب** ساده و کاربرپسند.
 - **آداپتور رسمی زرین‌پال** برای request، callback و verify؛ فعال‌سازی با environment.
 - **روش‌های ارسال** (پست، تیپاکس، تحویل در محل).
@@ -64,11 +64,15 @@ Rang/
 ├── wp-config.php                 # تنظیمات پایه WordPress + بارگذار .env (fail-closed)
 ├── .htaccess                     # قوانین سرور، امنیت و کش
 ├── .env.example                  # الگوی متغیرهای محیطی (کپی به .env و تکمیل کنید)
-├── .github/workflows/            # گیت استاتیک CI (PHP 8.3 lint + production gate)
+├── LICENSE                       # مجوز MIT
+├── SECURITY.md                   # سیاست امنیتی و کانال گزارش آسیب‌پذیری
+├── .github/workflows/            # CI استاتیک + فشرده‌سازی خودکار تصاویر (pngquant)
+├── .github/dependabot.yml        # پایش دوره‌ای وابستگی‌ها
 ├── README.md                     # مستندات پروژه
 ├── GO_LIVE_PHP_HOSTING_FA.md     # راهنمای گام‌به‌گام استقرار روی هاست PHP
 ├── docs/                         # ADR معماری + مدل تهدید (از استقرار عمومی مستثناست)
-├── tests/                        # گیت‌های قابل‌تکرار کد (اجراشده در CI)
+├── tests/                        # گیت‌های CI + دود-تست استیجینگ (staging_smoke.php)
+├── scripts/build-deploy.sh       # ساخت بستهٔ استقرار تمیز (zip بدون docs/tests)
 └── wp-content/
     ├── uploads/.htaccess         # ممنوعیت اجرای PHP در پوشهٔ آپلود
     ├── themes/
@@ -138,6 +142,14 @@ bash tests/production_gate.sh
 
 > این گیت عمداً ادعای موفقیت runtime (پرداخت، SMS، Lighthouse یا restore) را ایجاد نمی‌کند؛ این موارد باید در staging مجاز با شواهد اجرا شوند.
 
+### دود-تست استیجینگ (پیش از go-live)
+
+پس از استقرار روی استیجینگ و فعال‌سازی افزونه‌ها، سلامت محیط را با این دستور اثبات کنید:
+```bash
+wp eval-file tests/staging_smoke.php
+```
+این تست ارز **ریال (IRR)**، کاتالوگ ۲۰ محصولی، درگاه زرین‌پال، جدول اعلان‌های پایگاه‌داده و صفحات حقوقی را بررسی می‌کند.
+
 ### تست عملکرد
 - [GTmetrix](https://gtmetrix.com/)
 - [PageSpeed Insights](https://pagespeed.web.dev/)
@@ -159,6 +171,8 @@ bash tests/production_gate.sh
 
 برای اطلاعات بیشتر، به فایل‌های زیر مراجعه کنید:
 - [GO_LIVE_PHP_HOSTING_FA.md](GO_LIVE_PHP_HOSTING_FA.md) - راهنمای استقرار روی هاست PHP
+- [SECURITY.md](SECURITY.md) - سیاست امنیتی و گزارش آسیب‌پذیری
+- [LICENSE](LICENSE) - متن مجوز MIT
 - [docs/adrs/0001-architecture.md](docs/adrs/0001-architecture.md) - تصمیمات معماری (ADR)
 - [docs/wp-threat-model.md](docs/wp-threat-model.md) - مدل تهدید امنیتی
 - [wp-content/themes/bamero/README.md](wp-content/themes/bamero/README.md) - مستندات تم

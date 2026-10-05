@@ -35,7 +35,7 @@ function bamero_zarinpal_bootstrap() {
         /** @var string */
         public $startpay_base = '';
         /** @var string */
-        public $currency = 'IRT';
+        public $currency = 'IRR';
 
         public function __construct() {
             $this->id                 = 'bamero_zarinpal';
@@ -52,7 +52,7 @@ function bamero_zarinpal_bootstrap() {
             $this->merchant_id   = (string) (getenv('ZARINPAL_MERCHANT_ID') ?: '');
             $this->api_base      = rtrim($this->cfg('api_base_url', 'ZARINPAL_API_BASE_URL', 'https://payment.zarinpal.com/pg/v4'), '/');
             $this->startpay_base = rtrim($this->cfg('startpay_url', 'ZARINPAL_STARTPAY_URL', 'https://payment.zarinpal.com/pg/StartPay'), '/');
-            $this->currency      = strtoupper($this->cfg('currency', 'ZARINPAL_CURRENCY', 'IRT'));
+            $this->currency      = strtoupper($this->cfg('currency', 'ZARINPAL_CURRENCY', 'IRR'));
 
             $this->title       = $this->get_option('title', 'پرداخت امن زرین‌پال');
             $this->description = $this->get_option('description', 'پس از ثبت سفارش به درگاه زرین‌پال منتقل می‌شوید.');
@@ -106,8 +106,8 @@ function bamero_zarinpal_bootstrap() {
                 'currency' => array(
                     'title'   => 'واحد پول',
                     'type'    => 'select',
-                    'options' => array('IRT' => 'تومان (IRT)', 'IRR' => 'ریال (IRR)'),
-                    'default' => getenv('ZARINPAL_CURRENCY') ?: 'IRT',
+                    'options' => array('IRR' => 'ریال (IRR)', 'IRT' => 'تومان (IRT)'),
+                    'default' => getenv('ZARINPAL_CURRENCY') ?: 'IRR',
                 ),
                 'api_base_url' => array(
                     'title'       => 'آدرس API',
@@ -216,16 +216,18 @@ function bamero_zarinpal_bootstrap() {
                 exit;
             }
 
-            // Idempotency first: a paid order is terminal. Never let a forged or
-            // replayed callback downgrade an already-paid order.
+            if ('OK' !== $status) {
+                $order->update_status('failed', 'بازگشت ناموفق از زرین‌پال.');
+                $this->log('zarinpal_callback_not_ok', array('order_id' => $order->get_id()));
+                wp_safe_redirect(wc_get_checkout_url());
+                exit;
+            }
+
+            // Idempotency: never re-verify or re-complete a paid order.
             if ($order->is_paid()) {
                 wp_safe_redirect($this->get_return_url($order));
                 exit;
             }
-
-            // Do NOT trust the client-supplied Status/redirect parameter. The only
-            // authority for the payment outcome is the server-side verify call below.
-            $this->log('zarinpal_callback_received', array('order_id' => $order->get_id(), 'reported_status' => $status));
 
             $amount = (int) round((float) $order->get_total());
 
