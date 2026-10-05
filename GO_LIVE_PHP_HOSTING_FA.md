@@ -113,7 +113,7 @@ SMS_IR_TEMPLATE_REFUND_COMPLETED=شناسه_قالب_بازگشت_وجه
 ZARINPAL_API_BASE_URL=https://payment.zarinpal.com/pg/v4
 ZARINPAL_STARTPAY_URL=https://payment.zarinpal.com/pg/StartPay
 ZARINPAL_MERCHANT_ID=مرچنت_کد_زرین‌پال
-ZARINPAL_CURRENCY=IRT
+ZARINPAL_CURRENCY=IRR
 BAMERO_PAYMENT_WEBHOOK_SECRET=یک_رشته_تصادفی_بلند
 ```
 
@@ -164,7 +164,7 @@ BAMERO_PAYMENT_WEBHOOK_SECRET=یک_رشته_تصادفی_بلند
 |------|------|-------|
 | Permalinks | تنظیمات > پیوندهای یکتا | **Post name** |
 | Timezone | تنظیمات > همگانی | **تهران (UTC+3:30)** |
-| Currency | WooCommerce > تنظیمات | **تومان (IRT)** |
+| Currency | WooCommerce > تنظیمات | **ریال (IRR)** |
 | Country | WooCommerce > تنظیمات | **Iran (IR)** |
 | اطلاعات تماس | نمایش > سفارشی‌سازی > اطلاعات تماس بامرو | شماره، نشانی، شبکه‌های اجتماعی |
 | درگاه زرین‌پال | WooCommerce > تنظیمات > پرداخت | فعال‌سازی «زرین‌پال بامرو» |
@@ -179,6 +179,24 @@ BAMERO_PAYMENT_WEBHOOK_SECRET=یک_رشته_تصادفی_بلند
 ۳. پس از بازگشت از درگاه، وضعیت سفارش باید به «پرداخت‌شده» تغییر کند (فقط پس از verify موفق).
 ۴. یک ورود با شمارهٔ موبایل را تست کنید و کد OTP را دریافت کنید.
 ۵. در صورت بروز خطا، لاگ‌ها را در `wp-content/debug.log` (در صورت فعال بودن) بررسی کنید.
+
+---
+
+## ۷ب) دود-تست استیجینگ (پیش از go-live الزامی)
+
+پس از فعال‌سازی همهٔ افزونه‌ها روی استیجینگ، این تست را اجرا کنید تا سلامت محیط اثبات شود:
+
+```bash
+wp eval-file tests/staging_smoke.php
+```
+
+این اسکریپت به‌صورت خودکار بررسی می‌کند: ارز **ریال (IRR)**، ۲۰ محصول منتشرشده با SKU یکتای `RP-XX-NNN`، ۶ دسته، مقیاس صحیح قیمت‌های ریالی، فعال بودن درگاه زرین‌پال و `ZARINPAL_MERCHANT_ID`، فعال بودن production-core، وجود جدول اعلان‌های outbox در پایگاه‌داده (`wp_bamero_queue_notification` که در فعال‌سازی افزونه با `dbDelta` ساخته می‌شود)، نبودن کاربر `admin`، غیرفعال بودن عضویت آزاد و وجود صفحات «حریم خصوصی» و «شرایط استفاده» (این دو صفحه با فعال‌سازی افزونهٔ بامرو سفارشی به‌صورت خودکار ساخته می‌شوند). در صورت شکست هر بررسی، اسکریپت با کد غیرصفر خارج می‌شود و go-live ممنوع است.
+
+ساخت بستهٔ استقرار تمیز (بدون docs/tests/.git):
+
+```bash
+bash scripts/build-deploy.sh   # خروجی: dist/bamero-deploy-<date>.zip
+```
 
 ---
 

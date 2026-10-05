@@ -511,19 +511,25 @@ add_filter('woocommerce_email_enabled_customer_refunded_order', '__return_false'
 add_filter('woocommerce_email_enabled_customer_reset_password', '__return_false');
 add_filter('woocommerce_email_enabled_customer_new_account', '__return_false');
 
-/** Register Iranian Toman (IRT) as a first-class WooCommerce currency with a proper symbol. */
-function bamero_register_irt_currency($currencies) {
+/** Register Iranian currencies (IRR primary, IRT legacy) as first-class WooCommerce currencies with proper symbols. */
+function bamero_register_ir_currencies($currencies) {
     if (!isset($currencies['IRT'])) {
         $currencies['IRT'] = __('تومان ایران', 'bamero-production-core');
     }
+    if (!isset($currencies['IRR'])) {
+        $currencies['IRR'] = __('ریال ایران', 'bamero-production-core');
+    }
     return $currencies;
 }
-add_filter('woocommerce_currencies', 'bamero_register_irt_currency');
+add_filter('woocommerce_currencies', 'bamero_register_ir_currencies');
 
-function bamero_register_irt_currency_symbol($symbol, $currency_code) {
+function bamero_register_ir_currency_symbol($symbol, $currency_code) {
     if ('IRT' === $currency_code) {
         return 'تومان';
     }
+    if ('IRR' === $currency_code) {
+        return 'ریال';
+    }
     return $symbol;
 }
-add_filter('woocommerce_currency_symbol', 'bamero_register_irt_currency_symbol', 10, 2);
+add_filter('woocommerce_currency_symbol', 'bamero_register_ir_currency_symbol', 10, 2);
