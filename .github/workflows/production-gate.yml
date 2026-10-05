@@ -24,8 +24,8 @@ jobs:
       - name: Immutable artifact manifest
         run: |
           mkdir -p artifact
-          find . -type f -not -path './.git/*' -print0 | sort -z | xargs -0 sha256sum > artifact/sha256-manifest.txt
-          tar --exclude=.git -czf artifact/bamero-source.tar.gz .
+          find . -type f -not -path './.git/*' -not -path './artifact/*' -print0 | sort -z | xargs -0 sha256sum > artifact/sha256-manifest.txt
+          tar --exclude=.git --exclude=artifact -czf artifact/bamero-source.tar.gz .
       - uses: actions/upload-artifact@v4
         with:
           name: bamero-source-${{ github.sha }}
