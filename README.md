@@ -38,15 +38,16 @@
 - **هدرهای امنیتی** و **CSP با nonce** برای اسکریپت‌ها.
 
 ### ✅ ویژگی‌های عملکرد
-- **کش سرور** با WP Super Cache.
+- **کش سرور** با WP Super Cache (اختیاری؛ پرچم `WP_CACHE` پس از نصب افزونه در `.env` فعال می‌شود).
 - **فشرده‌سازی Gzip** برای کاهش حجم فایل‌ها.
 - **Lazy Load** برای تصاویر.
-- **Minify و Concatenate** برای CSS و JavaScript.
+- **Minify CSS/JS** اختیاری با افزونهٔ پیشنهادی Autoptimize (پیش‌فرض: بدون تغییر فایل‌ها، `CONCATENATE_SCRIPTS=false`).
 - **Preload و Preconnect** برای فایل‌های حیاتی.
 
 ### ✅ ویژگی‌های SEO
-- **Schema Markup** برای محصولات و صفحات.
-- **Meta Tags** (Open Graph, Twitter Cards, Canonical URLs).
+- **Schema Markup** (JSON-LD با nonce) برای محصولات و صفحات.
+- **Canonical URL** خودکار وردپرس/ووکامرس.
+- **Open Graph و Twitter Cards** با افزونهٔ پیشنهادی Rank Math.
 - **Sitemap** خودکار با Rank Math.
 - **robots.txt پویا** (دامنه‌محور؛ بدون هاست hard-code).
 
@@ -93,7 +94,7 @@ Rang/
 
 ### 1. دریافت کد
 ```bash
-git clone https://github.com/Mojim62/Rang.git
+git clone https://github.com/Mojig62m/rang.git
 cd Rang
 ```
 

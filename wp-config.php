@@ -151,7 +151,8 @@ define('DISALLOW_FILE_EDIT', true);
 $dfm = getenv('DISALLOW_FILE_MODS');
 define('DISALLOW_FILE_MODS', filter_var($dfm !== false ? $dfm : '1', FILTER_VALIDATE_BOOLEAN));
 define('FORCE_SSL_ADMIN', true);
-define('WP_CACHE', true);
+$bamero_wp_cache = getenv('WP_CACHE');
+define('WP_CACHE', filter_var($bamero_wp_cache !== false ? $bamero_wp_cache : '0', FILTER_VALIDATE_BOOLEAN));
 define('CONCATENATE_SCRIPTS', false);
 
 define('EMPTY_TRASH_DAYS', 14);

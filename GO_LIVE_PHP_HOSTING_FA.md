@@ -153,6 +153,8 @@ BAMERO_PAYMENT_WEBHOOK_SECRET=یک_رشته_تصادفی_بلند
 
 سپس **WooCommerce** و در صورت تمایل افزونه‌های پیشنهادی (YITH Wishlist، Autoptimize، WP Super Cache، Rank Math، Wordfence) را نصب و فعال کنید.
 
+> **نسخهٔ ووکامرس و قالب‌های قالب:** قالب‌های بازنویسی‌شدهٔ `cart.php` و `form-checkout.php` از ووکامرس ۹.۰ گرفته شده‌اند و با سری ۱۰ و ۱۱ نیز کار می‌کنند، اما پس از هر ارتقای major ووکامرس، بخش **WooCommerce > Status** را برای هشدار «outdated template» بازبینی و سبد خرید/پرداخت را یک‌بار دود-تست کنید. اگر WP Super Cache نصب و فعال کردید، مقدار `WP_CACHE` را در `.env` به `1` تغییر دهید.
+
 > اگر `DISALLOW_FILE_MODS=1` باشد، نصب افزونه از پنل غیرفعال است؛ افزونه‌ها را دستی در `wp-content/plugins` آپلود کنید یا موقتاً این پرچم را `0` کنید و پس از نصب دوباره `1` کنید.
 
 ---
