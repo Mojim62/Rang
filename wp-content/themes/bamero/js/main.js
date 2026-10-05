@@ -65,11 +65,6 @@ jQuery(document).ready(function($) {
         $(this).addClass('active');
     });
 
-    // ===== SCROLL TO TOP BUTTON =====
-    $(window).on('scroll', function() {
-        // handled above combined
-    });
-
     $('.scroll-to-top').on('click', function(e) {
         e.preventDefault();
         $('html, body').animate({ scrollTop: 0 }, 'smooth');
@@ -147,12 +142,6 @@ jQuery(document).ready(function($) {
         setTimeout(function() {
             $('.woocommerce-message').fadeOut();
         }, 3000);
-    });
-
-    // ===== CART UPDATES =====
-    $(document.body).on('updated_cart_totals', function() {
-        // Reload the page to update cart
-        location.reload();
     });
 
     // ===== CHECKOUT FORM VALIDATION =====
@@ -254,8 +243,10 @@ jQuery(document).ready(function($) {
 
         // Create modal if it doesn't exist
         if (!$('#image-preview-modal').length) {
+            var baseZ = parseInt($('.whatsapp-float').css('z-index'), 10);
+            var modalZ = isNaN(baseZ) ? 9999 : baseZ + 100;
             $('body').append('\n' +
-                '<div id="image-preview-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: ' + (parseInt($('.whatsapp-float').css('z-index')) + 100) + '; justify-content: center; align-items: center;">\n' +
+                '<div id="image-preview-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: ' + modalZ + '; justify-content: center; align-items: center;">\n' +
                 '    <span id="close-preview" style="position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer;" aria-label="بستن">&times;</span>\n' +
                 '    <img id="image-preview" style="max-width: 90%; max-height: 90%;" src="" alt="" />\n' +
                 '</div>\n' +
@@ -369,26 +360,6 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // ===== PRODUCT RATING DISPLAY =====
-    $('.star-rating').each(function() {
-        var $this = $(this);
-        var rating = parseFloat($this.attr('aria-rating'));
-        var fullStars = Math.floor(rating);
-        var halfStar = rating % 1 >= 0.5 ? 1 : 0;
-        var emptyStars = 5 - fullStars - halfStar;
-
-        $this.html('');
-        for (var i = 0; i < fullStars; i++) {
-            $this.append('<i class="fas fa-star"></i>');
-        }
-        if (halfStar) {
-            $this.append('<i class="fas fa-star-half-alt"></i>');
-        }
-        for (var i = 0; i < emptyStars; i++) {
-            $this.append('<i class="far fa-star"></i>');
-        }
-    });
-
     // ===== WHATSAPP FLOAT BUTTON =====
     $('.whatsapp-float').on('click', function(e) {
         e.preventDefault();
@@ -468,20 +439,3 @@ jQuery(document).ready(function($) {
     // Run initialization
     initializeBamero();
 });
-
-// ===== GLOBAL FUNCTIONS =====
-
-// Format Persian numbers
-function toPersianNumber(num) {
-    var persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-    return num.toString().replace(/\d/g, function(digit) {
-        return persianDigits[parseInt(digit)];
-    });
-}
-
-// Format price with Persian numbers
-function formatPersianPrice(price) {
-    return price.replace(/\d+/g, function(num) {
-        return toPersianNumber(num);
-    });
-}

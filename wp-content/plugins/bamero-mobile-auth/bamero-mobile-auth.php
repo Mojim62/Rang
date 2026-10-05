@@ -4,6 +4,8 @@
  * Description: Customer identity by verified mobile + SMS OTP. No customer password. No customer email authentication.
  * Version: 1.0.0
  * Author: Bamero
+ * License: MIT
+ * License URI: https://opensource.org/licenses/MIT
  * Text Domain: bamero-mobile-auth
  * Requires at least: 6.0
  * Requires Plugins: woocommerce
@@ -99,14 +101,31 @@ function bamero_request_otp($phone_raw, $context = 'login') {
     $phone_key  = 'bamero_otp_rate_p_' . md5($phone);
     $ip_key     = 'bamero_otp_rate_ip_' . md5($ip);
     $global_key = 'bamero_otp_rate_global';
-    foreach (array($phone_key => BAMERO_MOBILE_AUTH_RATE_LIMIT, $ip_key => BAMERO_MOBILE_AUTH_RATE_LIMIT * 3, $global_key => 200) as $rk => $limit) {
-        $count = (int) get_transient($rk);
-        if ($count >= $limit) {
-            return new WP_Error('rate_limited', __('تعداد درخواست‌ها بیش از حد مجاز است. بعداً تلاش کنید.', 'bamero-mobile-auth'));
-        }
+
+    // H2: the check-then-increment below is a read-modify-write cycle over
+    // transients. Under concurrent requests (double-click, retry storms) the
+    // non-atomic version lets far more than the configured number of SMS
+    // messages through. Serialize the whole section per phone with a MySQL
+    // named lock so the counters are enforced exactly.
+    global $wpdb;
+    $lock_name = 'bamero_otp_rl_' . md5($phone);
+    $got_lock  = (int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 2)', $lock_name));
+    if (1 !== $got_lock) {
+        return new WP_Error('rate_limited', __('تعداد درخواست‌ها بیش از حد مجاز است. بعداً تلاش کنید.', 'bamero-mobile-auth'));
     }
-    foreach (array($phone_key, $ip_key, $global_key) as $rk) {
-        set_transient($rk, (int) get_transient($rk) + 1, HOUR_IN_SECONDS);
+
+    try {
+        foreach (array($phone_key => BAMERO_MOBILE_AUTH_RATE_LIMIT, $ip_key => BAMERO_MOBILE_AUTH_RATE_LIMIT * 3, $global_key => 1000) as $rk => $limit) {
+            $count = (int) get_transient($rk);
+            if ($count >= $limit) {
+                return new WP_Error('rate_limited', __('تعداد درخواست‌ها بیش از حد مجاز است. بعداً تلاش کنید.', 'bamero-mobile-auth'));
+            }
+        }
+        foreach (array($phone_key, $ip_key, $global_key) as $rk) {
+            set_transient($rk, (int) get_transient($rk) + 1, HOUR_IN_SECONDS);
+        }
+    } finally {
+        $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
     }
 
     $lock_key = 'bamero_otp_lock_' . md5($phone);
@@ -276,7 +295,7 @@ function bamero_handle_request_otp() {
     }
     wp_safe_redirect(add_query_arg(array(
         'bamero_auth' => 'otp_sent',
-        'mobile'      => rawurlencode($result['phone']),
+        'mobile'      => $result['phone'],
     ), $redirect));
     exit;
 }
@@ -554,8 +573,15 @@ foreach ($bamero_email_ids as $hook) {
  * lost-password surface must be disabled. Customers authenticate only via OTP.
  */
 function bamero_disable_password_reset() {
-    // Core: block the retrieve/reset key flow entirely.
-    add_filter('allow_password_reset', '__return_false');
+    // Core: block the retrieve/reset flow for OTP-only CUSTOMERS. Admins and
+    // shop managers must keep a working password-recovery path.
+    add_filter('allow_password_reset', function ($allow, $user_id) {
+        $user = get_userdata((int) $user_id);
+        if ($user && in_array('customer', (array) $user->roles, true)) {
+            return false;
+        }
+        return $allow;
+    }, 10, 2);
     add_filter('lostpassword_url', '__return_empty_string');
 
     // Block wp-login.php reset actions (lostpassword / rp / resetpass).

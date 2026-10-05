@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Bamero Essential Plugins
- * Plugin URI: https://github.com/Mojim62/Rang
+ * Plugin URI: https://github.com/Mojig62m/rang
  * Description: Administrator-controlled installer for Bamero's WordPress.org plugin recommendations.
  * Version: 1.1.0
  * Author: Bamero
- * Author URI: https://github.com/Mojim62/Rang
+ * Author URI: https://github.com/Mojig62m/rang
  * License: MIT
  * License URI: https://opensource.org/licenses/MIT
  * Text Domain: bamero-essential-plugins
@@ -30,23 +30,23 @@ function bamero_essential_plugin_path($plugin) {
 }
 
 function bamero_add_essential_plugins_page() {
-    add_submenu_page('options-general.php', 'پلاگین‌های ضروری بامرو', 'پلاگین‌های ضروری', 'install_plugins', 'bamero-essential-plugins', 'bamero_essential_plugins_page_html');
+    add_submenu_page('options-general.php', 'افزونه‌های ضروری بامرو', 'افزونه‌های ضروری', 'install_plugins', 'bamero-essential-plugins', 'bamero_essential_plugins_page_html');
 }
 add_action('admin_menu', 'bamero_add_essential_plugins_page');
 
 function bamero_essential_plugins_page_html() {
     if (!current_user_can('install_plugins')) {
-        wp_die(esc_html__('شما اجازه مدیریت پلاگین‌ها را ندارید.', 'bamero-essential-plugins'), '', array('response' => 403));
+        wp_die(esc_html__('شما اجازه مدیریت افزونه‌ها را ندارید.', 'bamero-essential-plugins'), '', array('response' => 403));
     }
 
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
     $plugins = bamero_get_essential_plugins();
     ?>
     <div class="wrap">
-        <h1>پلاگین‌های پیشنهادی بامرو</h1>
-        <p>نصب هر پلاگین به‌صورت جداگانه و پس از تأیید شما انجام می‌شود. درگاه زرین‌پال به دلیل نیاز به بررسی منبع و تنظیمات پذیرنده، عمداً در این فهرست نصب خودکار ندارد.</p>
+        <h1>افزونه‌های پیشنهادی بامرو</h1>
+        <p>نصب هر افزونه به‌صورت جداگانه و پس از تأیید شما انجام می‌شود. درگاه زرین‌پال به دلیل نیاز به بررسی منبع و تنظیمات پذیرنده، عمداً در این فهرست نصب خودکار ندارد.</p>
         <table class="wp-list-table widefat fixed striped">
-            <thead><tr><th>نام پلاگین</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+            <thead><tr><th>نام افزونه</th><th>وضعیت</th><th>عملیات</th></tr></thead>
             <tbody>
             <?php foreach ($plugins as $plugin) : ?>
                 <?php $path = bamero_essential_plugin_path($plugin); $installed = file_exists(WP_PLUGIN_DIR . '/' . $path); $active = $installed && is_plugin_active($path); ?>
@@ -84,14 +84,14 @@ function bamero_install_essential_plugin() {
         );
     }
     if (!current_user_can('install_plugins')) {
-        wp_die(esc_html__('شما اجازه نصب پلاگین‌ها را ندارید.', 'bamero-essential-plugins'), '', array('response' => 403));
+        wp_die(esc_html__('شما اجازه نصب افزونه‌ها را ندارید.', 'bamero-essential-plugins'), '', array('response' => 403));
     }
 
     $slug = isset($_POST['plugin']) ? sanitize_key(wp_unslash($_POST['plugin'])) : '';
     check_admin_referer('bamero_install_plugin_' . $slug);
     $plugins = wp_list_pluck(bamero_get_essential_plugins(), null, 'slug');
     if (!isset($plugins[$slug])) {
-        wp_die(esc_html__('پلاگین در فهرست مجاز نیست.', 'bamero-essential-plugins'), '', array('response' => 400));
+        wp_die(esc_html__('افزونه در فهرست مجاز نیست.', 'bamero-essential-plugins'), '', array('response' => 400));
     }
 
     require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -104,7 +104,7 @@ function bamero_install_essential_plugin() {
 
     $upgrader = new Plugin_Upgrader(new Automatic_Upgrader_Skin());
     if (!$upgrader->install($api->download_link)) {
-        wp_die(esc_html__('نصب پلاگین ناموفق بود.', 'bamero-essential-plugins'), '', array('response' => 502));
+        wp_die(esc_html__('نصب افزونه ناموفق بود.', 'bamero-essential-plugins'), '', array('response' => 502));
     }
 
     $path = bamero_essential_plugin_path($plugins[$slug]);

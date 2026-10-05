@@ -48,7 +48,8 @@ function bamero_zarinpal_bootstrap() {
             $this->init_settings();
 
             // Settings-backed configuration with environment fallback.
-            $this->merchant_id   = $this->cfg('merchant_id', 'ZARINPAL_MERCHANT_ID');
+            // Environment-only credential: the merchant ID never lives in the database.
+            $this->merchant_id   = (string) (getenv('ZARINPAL_MERCHANT_ID') ?: '');
             $this->api_base      = rtrim($this->cfg('api_base_url', 'ZARINPAL_API_BASE_URL', 'https://payment.zarinpal.com/pg/v4'), '/');
             $this->startpay_base = rtrim($this->cfg('startpay_url', 'ZARINPAL_STARTPAY_URL', 'https://payment.zarinpal.com/pg/StartPay'), '/');
             $this->currency      = strtoupper($this->cfg('currency', 'ZARINPAL_CURRENCY', 'IRT'));
@@ -97,12 +98,10 @@ function bamero_zarinpal_bootstrap() {
                     'type'    => 'textarea',
                     'default' => 'پس از ثبت سفارش به درگاه زرین‌پال منتقل می‌شوید.',
                 ),
-                'merchant_id' => array(
+                'merchant_id_note' => array(
                     'title'       => 'Merchant ID',
-                    'type'        => 'text',
-                    'description' => 'شناسه ۳۶ کاراکتری پذیرنده زرین‌پال. در صورت خالی بودن از متغیر محیطی ZARINPAL_MERCHANT_ID خوانده می‌شود.',
-                    'default'     => '',
-                    'desc_tip'    => true,
+                    'type'        => 'title',
+                    'description' => 'شناسه ۳۶ کاراکتری پذیرنده فقط از متغیر محیطی ZARINPAL_MERCHANT_ID (فایل .env خارج از ریشهٔ وب) خوانده می‌شود و به دلخواه امنیتی در پایگاه‌داده ذخیره نمی‌شود.',
                 ),
                 'currency' => array(
                     'title'   => 'واحد پول',
@@ -190,6 +189,7 @@ function bamero_zarinpal_bootstrap() {
             }
 
             $order->update_meta_data('_bamero_zarinpal_authority', $authority);
+            $order->update_meta_data('_bamero_zarinpal_currency', $currency);
             $order->save();
             $order->update_status('pending', 'در انتظار بازگشت از زرین‌پال.');
 
@@ -229,12 +229,22 @@ function bamero_zarinpal_bootstrap() {
 
             $amount = (int) round((float) $order->get_total());
 
+            // The verify amount must be in the SAME currency unit that was used
+            // for the payment request, otherwise ZarinPal rejects with code 54
+            // (amount mismatch). The unit used at request time is persisted on
+            // the order so the callback is immune to later settings changes.
+            $currency = strtoupper((string) $order->get_meta('_bamero_zarinpal_currency'));
+            if (!in_array($currency, array('IRR', 'IRT'), true)) {
+                $currency = $this->currency;
+            }
+
             $response = wp_remote_post($this->api_base . '/payment/verify.json', array(
                 'timeout' => 20,
                 'headers' => array('Content-Type' => 'application/json', 'Accept' => 'application/json'),
                 'body'    => wp_json_encode(array(
                     'merchant_id' => $this->merchant_id,
                     'amount'      => $amount,
+                    'currency'    => $currency,
                     'authority'   => $authority,
                 )),
             ));
@@ -268,6 +278,3 @@ function bamero_zarinpal_bootstrap() {
         return $gateways;
     });
 }
-
-/* Never allow this plugin to become an email transport. */
-add_filter('woocommerce_email_enabled_new_order', '__return_false', 99);

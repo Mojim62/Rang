@@ -29,7 +29,8 @@ function bamero_format_price_html($product) {
         return '';
     }
     $formatted = number_format((float) $price, 0, '', ',');
-    $html = '<span class="amount">' . esc_html(bamero_persian_digits($formatted)) . ' تومان</span>';
+    $unit = (function_exists('get_woocommerce_currency') && 'IRR' === get_woocommerce_currency()) ? ' ریال' : ' تومان';
+    $html = '<span class="amount">' . esc_html(bamero_persian_digits($formatted)) . esc_html($unit) . '</span>';
     if ($product->is_on_sale() && $product->get_regular_price()) {
         $reg = number_format((float) $product->get_regular_price(), 0, '', ',');
         $html = '<del aria-hidden="true">' . esc_html(bamero_persian_digits($reg)) . '</del> ' . $html;
@@ -170,13 +171,8 @@ function bamero_scripts() {
         BAMERO_VERSION,
         true
     );
-
-    // Localize for AJAX
-    wp_localize_script('bamero-script', 'bamero_ajax', array(
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce'    => wp_create_nonce('bamero_ajax_nonce'),
-    ));
 }
+
 add_action('wp_enqueue_scripts', 'bamero_scripts');
 
 function bamero_preload_primary_font() {
@@ -226,19 +222,19 @@ function bamero_woocommerce_persian_text($translated_text, $text, $domain) {
             'Price: High to Low' => 'قیمت: گران به ارزان',
             'Sort by popularity' => 'مرتب‌سازی بر اساس محبوبیت',
             'Sort by average rating' => 'مرتب‌سازی بر اساس امتیاز',
-            'Sort by newness' => 'مرتب‌سازی بر اساس جدیدترین',
+            'Sort by newness' => 'مرتب‌سازی بر اساس جدیدترین محصولات',
             'Sort by price: low to high' => 'مرتب‌سازی بر اساس قیمت: ارزان به گران',
             'Sort by price: high to low' => 'مرتب‌سازی بر اساس قیمت: گران به ارزان',
             'In stock' => 'موجود',
-            'Out of stock' => 'اتمام موجودی',
+            'Out of stock' => 'ناموجود',
             'Add to wishlist' => 'افزودن به لیست علاقه‌مندی',
             'Remove from wishlist' => 'حذف از لیست علاقه‌مندی',
             'Your wishlist' => 'لیست علاقه‌مندی شما',
             'No products in the wishlist' => 'هیچ محصولی در لیست علاقه‌مندی وجود ندارد',
-            'Proceed to checkout' => 'ادامه به تسویه حساب',
+            'Proceed to checkout' => 'ادامه جهت پرداخت',
             'Update cart' => 'به‌روزرسانی سبد خرید',
             'Cart totals' => 'جمع سبد خرید',
-            'Subtotal' => 'جمع جزئی',
+            'Subtotal' => 'جمع جزء',
             'Total' => 'جمع کل',
             'Shipping' => 'هزینه ارسال',
             'Free shipping' => 'ارسال رایگان',
@@ -252,12 +248,12 @@ function bamero_woocommerce_persian_text($translated_text, $text, $domain) {
             'Quantity' => 'تعداد',
             'Price' => 'قیمت',
             'Remove' => 'حذف',
-            'Apply coupon' => 'اعمال کوپن',
-            'Coupon code' => 'کد کوپن',
-            'Enter your coupon code if you have one' => 'اگر کد کوپن دارید، وارد کنید',
-            'Coupon has been applied successfully' => 'کوپن با موفقیت اعمال شد',
-            'Sorry, this coupon does not exist' => 'متأسفانه این کوپن وجود ندارد',
-            'Please enter a coupon code' => 'لطفاً کد کوپن وارد کنید',
+            'Apply coupon' => 'اعمال کد تخفیف',
+            'Coupon code' => 'کد تخفیف',
+            'Enter your coupon code if you have one' => 'اگر کد تخفیف دارید، وارد کنید',
+            'Coupon has been applied successfully' => 'کد تخفیف با موفقیت اعمال شد',
+            'Sorry, this coupon does not exist' => 'متأسفانه این کد تخفیف معتبر نیست',
+            'Please enter a coupon code' => 'لطفاً کد تخفیف را وارد کنید',
         );
 
         if (isset($translations[$text])) {
@@ -267,16 +263,6 @@ function bamero_woocommerce_persian_text($translated_text, $text, $domain) {
     return $translated_text;
 }
 add_filter('gettext', 'bamero_woocommerce_persian_text', 20, 3);
-
-// RTL support for WooCommerce
-function bamero_woocommerce_rtl_support() {
-    if (is_rtl()) {
-        add_filter('woocommerce_dir', function() {
-            return 'rtl';
-        });
-    }
-}
-add_action('init', 'bamero_woocommerce_rtl_support');
 
 // Add body classes
 function bamero_body_classes($classes) {
@@ -616,26 +602,6 @@ add_filter('wp_revisions_to_keep', 'bamero_limit_post_revisions', 10, 2);
 
 // ===== CUSTOM TEMPLATE FUNCTIONS =====
 
-// Get product stock status
-function bamero_get_product_stock_status($product_id) {
-    $product = wc_get_product($product_id);
-    if ($product->is_in_stock()) {
-        $stock = $product->get_stock_quantity();
-        if ($stock > 0) {
-            return '<span class="stock-status in-stock">موجودی: ' . $stock . '</span>';
-        }
-    }
-    return '<span class="stock-status out-of-stock">اتمام موجودی</span>';
-}
-
-// Display product rating
-function bamero_display_product_rating($product_id) {
-    $product = wc_get_product($product_id);
-    if (get_option('woocommerce_enable_review_rating') === 'yes') {
-        echo wc_get_rating_html($product->get_average_rating());
-    }
-}
-
 // ===== CONTACT FORM HANDLER (native fallback) =====
 function bamero_process_contact_submit() {
     if (!isset($_POST['bamero_contact_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bamero_contact_nonce'])), 'bamero_contact')) {
@@ -842,23 +808,6 @@ function bamero_meta_robots() {
     }
 }
 add_action('wp_head', 'bamero_meta_robots', 1);
-
-/** hreflang for fa-IR (GEO + language) */
-function bamero_hreflang() {
-    if (is_singular()) {
-        $url = get_permalink();
-    } elseif (function_exists('is_shop') && is_shop()) {
-        $url = get_permalink(wc_get_page_id('shop'));
-    } else {
-        $url = home_url(add_query_arg(array(), $GLOBALS['wp']->request ?? ''));
-    }
-    if (!$url) {
-        $url = home_url('/');
-    }
-    echo '<link rel="alternate" hreflang="fa-IR" href="' . esc_url($url) . '" />' . "\n";
-    echo '<link rel="alternate" hreflang="x-default" href="' . esc_url($url) . '" />' . "\n";
-}
-add_action('wp_head', 'bamero_hreflang', 2);
 
 // =============================================================================
 // PERFORMANCE (Core Web Vitals 2026: LCP, INP, CLS)

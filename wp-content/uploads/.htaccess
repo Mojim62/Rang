@@ -1,0 +1,17 @@
+# Kill PHP execution inside wp-content/uploads.
+# Uploaded files must never be executable: this is a standard WordPress
+# go-live hardening measure. If a file slips through upload validation,
+# it can still not run as code.
+
+<FilesMatch "\.(php|php\d|phtml|phar)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Never serve directory listings from uploads.
+Options -Indexes

@@ -365,9 +365,23 @@ function bamero_install_notification_outbox() {
         PRIMARY KEY (id), UNIQUE KEY idem (idempotency_key), KEY status_schedule (status, scheduled_at), KEY order_id (order_id)
     ) {$charset};";
     dbDelta($sql);
+    update_option('bamero_notification_outbox_installed', 'yes', true);
 }
+register_activation_hook(__FILE__, 'bamero_install_notification_outbox');
 add_action('after_switch_theme', 'bamero_install_notification_outbox');
 add_action('activated_plugin', 'bamero_install_notification_outbox');
+
+/**
+ * Deploy-order safety net: guarantee the outbox table exists no matter in
+ * which order theme/plugins were activated. Cheap option check; runs on
+ * admin requests and before every worker run.
+ */
+function bamero_ensure_notification_outbox() {
+    if (get_option('bamero_notification_outbox_installed') !== 'yes') {
+        bamero_install_notification_outbox();
+    }
+}
+add_action('admin_init', 'bamero_ensure_notification_outbox');
 
 function bamero_queue_notification($order_id, $user_id, $template_key, array $payload, $max_retries = 5) {
     global $wpdb;
@@ -436,6 +450,7 @@ add_filter('bamero_sms_provider_send', 'bamero_sms_ir_provider_send', 5, 5);
 
 function bamero_process_notification_outbox($limit = 20) {
     global $wpdb;
+    bamero_ensure_notification_outbox();
     $table = bamero_notification_table_name();
     $now = current_time('mysql', true);
     $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE status = 'pending' AND scheduled_at <= %s AND (locked_at IS NULL OR locked_at < UTC_TIMESTAMP() - INTERVAL 5 MINUTE) ORDER BY id ASC LIMIT %d", $now, max(1, (int) $limit)));
@@ -477,11 +492,38 @@ function bamero_queue_order_sms($order_id, $old_status, $new_status, $order) {
 }
 add_action('woocommerce_order_status_changed', 'bamero_queue_order_sms', 20, 4);
 
-// Prevent platform-generated customer/admin mail at the configuration boundary.
-add_filter('pre_wp_' . 'mail', function($null, $atts) { bamero_log_event('mail_blocked', array('reason' => 'mobile_only_policy')); return false; }, 10, 2);
-add_filter('woocommerce_email_enabled_new_order', '__return_false');
+// Mobile-only policy: block platform-generated CUSTOMER mail, but keep the
+// store owner's own notifications (admin_email) alive so new orders are never
+// silent. Everything else is refused at the configuration boundary.
+add_filter('pre_wp_' . 'mail', function ($null, $atts) {
+    $admin_email = (string) get_option('admin_email');
+    $to = isset($atts['to']) ? (string) $atts['to'] : '';
+    if ('' !== $admin_email && '' !== $to && false !== stripos($to, $admin_email)) {
+        bamero_log_event('mail_allowed', array('reason' => 'admin_notification'));
+        return null; // fall through to normal wp_mail()
+    }
+    bamero_log_event('mail_blocked', array('reason' => 'mobile_only_policy'));
+    return false;
+}, 10, 2);
 add_filter('woocommerce_email_enabled_customer_processing_order', '__return_false');
 add_filter('woocommerce_email_enabled_customer_completed_order', '__return_false');
 add_filter('woocommerce_email_enabled_customer_refunded_order', '__return_false');
 add_filter('woocommerce_email_enabled_customer_reset_password', '__return_false');
 add_filter('woocommerce_email_enabled_customer_new_account', '__return_false');
+
+/** Register Iranian Toman (IRT) as a first-class WooCommerce currency with a proper symbol. */
+function bamero_register_irt_currency($currencies) {
+    if (!isset($currencies['IRT'])) {
+        $currencies['IRT'] = __('تومان ایران', 'bamero-production-core');
+    }
+    return $currencies;
+}
+add_filter('woocommerce_currencies', 'bamero_register_irt_currency');
+
+function bamero_register_irt_currency_symbol($symbol, $currency_code) {
+    if ('IRT' === $currency_code) {
+        return 'تومان';
+    }
+    return $symbol;
+}
+add_filter('woocommerce_currency_symbol', 'bamero_register_irt_currency_symbol', 10, 2);
