@@ -190,6 +190,7 @@ function bamero_zarinpal_bootstrap() {
             }
 
             $order->update_meta_data('_bamero_zarinpal_authority', $authority);
+            $order->update_meta_data('_bamero_zarinpal_currency', $currency);
             $order->save();
             $order->update_status('pending', 'در انتظار بازگشت از زرین‌پال.');
 
@@ -229,12 +230,22 @@ function bamero_zarinpal_bootstrap() {
 
             $amount = (int) round((float) $order->get_total());
 
+            // The verify amount must be in the SAME currency unit that was used
+            // for the payment request, otherwise ZarinPal rejects with code 54
+            // (amount mismatch). The unit used at request time is persisted on
+            // the order so the callback is immune to later settings changes.
+            $currency = strtoupper((string) $order->get_meta('_bamero_zarinpal_currency'));
+            if (!in_array($currency, array('IRR', 'IRT'), true)) {
+                $currency = $this->currency;
+            }
+
             $response = wp_remote_post($this->api_base . '/payment/verify.json', array(
                 'timeout' => 20,
                 'headers' => array('Content-Type' => 'application/json', 'Accept' => 'application/json'),
                 'body'    => wp_json_encode(array(
                     'merchant_id' => $this->merchant_id,
                     'amount'      => $amount,
+                    'currency'    => $currency,
                     'authority'   => $authority,
                 )),
             ));
@@ -268,6 +279,3 @@ function bamero_zarinpal_bootstrap() {
         return $gateways;
     });
 }
-
-/* Never allow this plugin to become an email transport. */
-add_filter('woocommerce_email_enabled_new_order', '__return_false', 99);

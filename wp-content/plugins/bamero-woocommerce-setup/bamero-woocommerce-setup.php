@@ -4,6 +4,8 @@
  * Description: ایجاد دسته‌بندی، برچسب، کاتالوگ محصولات بامرو (۲۰ کالا) و مشتریان نمونه (۱۰ کاربر) + تنظیمات پایه ووکامرس.
  * Version: 1.4.0
  * Author: Bamero
+ * License: MIT
+ * License URI: https://opensource.org/licenses/MIT
  * Text Domain: bamero-woocommerce-setup
  * Requires Plugins: woocommerce
  */
@@ -297,6 +299,11 @@ function bamero_customer_definition() {
  */
 function bamero_seed_customers() {
     if (!bamero_wc_setup_schema_is_validated()) return;
+    // B4: never create demo customers on a live store. The catalog is real;
+    // the 10 synthetic customers exist only for staging/dev environments.
+    if (function_exists('wp_get_environment_type') && 'production' === wp_get_environment_type()) {
+        return;
+    }
     $salt = (string) getenv('BAMERO_INTERNAL_ID_SALT');
     if ($salt === '') { $salt = wp_salt('auth'); }
     foreach (bamero_customer_definition() as $c) {
@@ -347,6 +354,13 @@ function bamero_prune_excess_seed_data() {
     $seed_users = get_users(array('meta_key' => '_bamero_seed_record', 'meta_value' => 'test-users-v1', 'fields' => 'ID'));
     foreach ($seed_users as $user_id) {
         wp_delete_user($user_id);
+    }
+    // B4: on a production store, synthetic demo customers must not exist at all.
+    if (function_exists('wp_get_environment_type') && 'production' === wp_get_environment_type()) {
+        $demo_users = get_users(array('meta_key' => '_bamero_seed_record', 'meta_value' => 'catalog-users-v1', 'fields' => 'ID'));
+        foreach ($demo_users as $user_id) {
+            wp_delete_user($user_id);
+        }
     }
 }
 

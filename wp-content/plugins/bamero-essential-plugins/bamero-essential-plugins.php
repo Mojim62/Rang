@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Bamero Essential Plugins
- * Plugin URI: https://github.com/Mojim62/Rang
+ * Plugin URI: https://github.com/Mojig62m/rang
  * Description: Administrator-controlled installer for Bamero's WordPress.org plugin recommendations.
  * Version: 1.1.0
  * Author: Bamero
- * Author URI: https://github.com/Mojim62/Rang
+ * Author URI: https://github.com/Mojig62m/rang
  * License: MIT
  * License URI: https://opensource.org/licenses/MIT
  * Text Domain: bamero-essential-plugins
