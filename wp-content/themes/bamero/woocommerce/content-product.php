@@ -14,7 +14,7 @@ if (!$product instanceof WC_Product || !$product->is_visible()) {
 
 $badge = '';
 if ($product->is_on_sale()) {
-    $badge = 'پرفروش';
+    $badge = 'تخفیف ویژه';
 } elseif ((time() - get_post_time('U', true, $product->get_id())) < WEEK_IN_SECONDS * 2) {
     $badge = 'جدید';
 }

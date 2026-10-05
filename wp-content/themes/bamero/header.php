@@ -31,7 +31,10 @@ defined('ABSPATH') || exit;
         <?php
         $bamero_instagram = get_theme_mod('bamero_instagram_url', '');
         $bamero_telegram  = get_theme_mod('bamero_telegram_url', '');
-        $bamero_whatsapp  = get_theme_mod('bamero_whatsapp_url', 'https://wa.me/989134292329');
+        $bamero_whatsapp  = get_theme_mod('bamero_whatsapp_url', '');
+        if ($bamero_whatsapp === '' && function_exists('bamero_whatsapp_default')) {
+            $bamero_whatsapp = bamero_whatsapp_default();
+        }
         if ($bamero_instagram || $bamero_telegram || $bamero_whatsapp) :
         ?>
         <div class="top-bar-social" aria-label="<?php echo esc_attr__('شبکه‌های اجتماعی', 'bamero'); ?>">

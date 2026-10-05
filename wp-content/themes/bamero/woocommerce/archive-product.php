@@ -85,7 +85,15 @@ if (taxonomy_exists('product_cat')) {
     </div>
 </main>
 
-<a href="https://wa.me/989134292329" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr__('گفتگو در واتساپ', 'bamero'); ?>">
+<?php
+$bamero_whatsapp_float = get_theme_mod('bamero_whatsapp_url', '');
+if ($bamero_whatsapp_float === '' && function_exists('bamero_whatsapp_default')) {
+    $bamero_whatsapp_float = bamero_whatsapp_default();
+}
+if ($bamero_whatsapp_float) :
+?>
+<a href="<?php echo esc_url($bamero_whatsapp_float); ?>" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr__('گفتگو در واتساپ', 'bamero'); ?>">
     <span aria-hidden="true">💬</span>
 </a>
+<?php endif; ?>
 <?php get_footer('shop'); ?>
