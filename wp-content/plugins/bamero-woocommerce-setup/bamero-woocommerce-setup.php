@@ -60,7 +60,7 @@ register_deactivation_hook(__FILE__, function () { flush_rewrite_rules(); });
 
 function bamero_create_product_categories() {
     if (!bamero_wc_setup_schema_is_validated()) return;
-    $categories = array('رنگ ساختمان' => 'رنگ‌های ساختمانی داخلی و نما', 'رنگ صنعتی' => 'رنگ‌های صنعتی و کف', 'ضد آب' => 'پوشش‌های ضد رطوبت و نانو', 'چسب و بتونه' => 'چسب‌ها و بتونه‌های آماده', 'ابزار نقاشی' => 'تینر، حل‌ال و ابزار', 'رنگ خودرو' => 'رنگ و آستر خودرو');
+    $categories = array('رنگ ساختمان' => 'رنگ‌های ساختمانی داخلی و نما', 'رنگ صنعتی' => 'رنگ‌های صنعتی و کف', 'ضد آب' => 'پوشش‌های ضد رطوبت و نانو', 'چسب و بتونه' => 'چسب‌ها و بتونه‌های آماده', 'ابزار نقاشی' => 'تینر، حلال و ابزار', 'رنگ خودرو' => 'رنگ و آستر خودرو');
     foreach ($categories as $name => $desc) {
         if (!term_exists($name, 'product_cat')) wp_insert_term($name, 'product_cat', array('description' => $desc));
     }
@@ -96,7 +96,7 @@ function bamero_catalog_definition() {
         array('name' => 'ضد آب پشت‌بام پلی‌یورتان بامرو', 'sku' => 'RP-RF-015', 'price' => '598400', 'cat' => 'ضد آب', 'tags' => array('ضدآب'), 'stock' => 22, 'description' => 'پوشش ضد آب پلی‌یورتان کشسان برای عایق‌کاری پشت‌بام و تراس.', 'color_code' => '#9AA3A8'),
         array('name' => 'رنگ اکریلیک نمای ضد جلبک بامرو', 'sku' => 'RP-EX-016', 'price' => '356900', 'cat' => 'رنگ ساختمان', 'tags' => array('۱۰ لیتر', 'قابل شستشو'), 'stock' => 29, 'description' => 'رنگ اکریلیک نمای ساختمان با خاصیت ضد جلبک و مقاوم به باران.', 'color_code' => '#EFE9DA'),
         array('name' => 'غلطک نقاشی نمدی ۲۵ سانتی بامرو', 'sku' => 'RP-RL-017', 'price' => '89000', 'cat' => 'ابزار نقاشی', 'tags' => array('پرفروش'), 'stock' => 88, 'description' => 'غلطک نمدی ۲۵ سانتی برای پوشش سریع و یکنواخت سطوح بزرگ.', 'color_code' => '#C9C4B8'),
-        array('name' => 'قلم‌مو نقاشی حرفه‌ای ۳ اینچ بامرو', 'sku' => 'RP-BR-018', 'price' => '64500', 'cat' => 'ابزار نقاشی', 'tags' => array('۵ لیتر'), 'stock' => 95, 'description' => 'قلم‌مو حرفه‌ای ۳ اینچ با موی مصنوعی برای لبه‌ها و جزئیات.', 'color_code' => '#B8926A'),
+        array('name' => 'قلم‌مو نقاشی حرفه‌ای ۳ اینچ بامرو', 'sku' => 'RP-BR-018', 'price' => '64500', 'cat' => 'ابزار نقاشی', 'tags' => array('۳ اینچ'), 'stock' => 95, 'description' => 'قلم‌مو حرفه‌ای ۳ اینچ با موی مصنوعی برای لبه‌ها و جزئیات.', 'color_code' => '#B8926A'),
         array('name' => 'رنگ خودرو متالیک پایه آب بامرو', 'sku' => 'RP-CR-019', 'price' => '925000', 'cat' => 'رنگ خودرو', 'tags' => array('۱۰ لیتر'), 'stock' => 11, 'description' => 'رنگ متالیک پایه آب خودرو با جلای عمیق و مقاومت بالا.', 'color_code' => '#1E4D8C'),
         array('name' => 'آستری فیلر خودرو بامرو', 'sku' => 'RP-PF-020', 'price' => '478300', 'cat' => 'رنگ خودرو', 'tags' => array('پرفروش'), 'stock' => 26, 'description' => 'آستری فیلر خودرو برای پرکردن ناهمواری و آماده‌سازی رنگ نهایی.', 'color_code' => '#A9ADB0'),
     );

@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Bamero Custom Plugin
- * Plugin URI: https://github.com/Mojim62/Rang
+ * Plugin URI: https://github.com/Mojig62m/rang
  * Description: Creates Bamero content pages. Theme-owned storefront presentation and product fields remain available when this plugin is inactive.
  * Version: 1.1.0
  * Author: Bamero
- * Author URI: https://github.com/Mojim62/Rang
+ * Author URI: https://github.com/Mojig62m/rang
  * License: MIT
  * License URI: https://opensource.org/licenses/MIT
  * Text Domain: bamero-custom-plugin
