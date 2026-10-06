@@ -56,7 +56,7 @@ if ! php "$DET" "$TMP" >/dev/null 2>&1; then
 fi
 echo "case 2 OK: all-guarded combo is declared SAFE"
 
-# ---- Case 3: single unguarded declaration => safe (no duplicate at all)
+# ---- Case 3: single declaration (guarded, alone) => safe (no duplicate at all)
 rm "$TMP/a.php"
 if ! php "$DET" "$TMP" >/dev/null 2>&1; then
     echo "REGRESSION FAIL: single declaration was flagged UNSAFE." >&2
