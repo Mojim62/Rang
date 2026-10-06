@@ -70,20 +70,22 @@ foreach ($funcs as $name => $files) {
     if (count($files) < 2) {
         continue;
     }
-    // Is the name guarded by function_exists() anywhere in any declaring file?
-    $guarded = false;
+    // A name is safe ONLY if EVERY declaring file wraps its own declaration
+    // in a function_exists() guard. A guard in one file does NOT make an
+    // unguarded declaration in another file safe: load order decides which
+    // one fatals, and any unguarded duplicate is a latent fatal error.
+    $unguarded = array();
     foreach ($files as $f) {
         $src = $sources[$f];
-        if (preg_match('/function_exists\s*\(\s*[\'"]' . preg_quote($name, '/') . '[\'"]\s*\)/i', $src)) {
-            $guarded = true;
-            break;
+        if (!preg_match('/function_exists\s*\(\s*[\'"]' . preg_quote($name, '/') . '[\'"]\s*\)/i', $src)) {
+            $unguarded[] = $f;
         }
     }
-    if ($guarded) {
-        echo "GUARDED (safe): {$name} declared in " . count($files) . " files (function_exists guard present)\n";
+    if (empty($unguarded)) {
+        echo "GUARDED (safe): {$name} declared in " . count($files) . " files (function_exists guard present in every declaring file)\n";
     } else {
-        echo "UNSAFE DUPLICATE: {$name} declared in:\n";
-        foreach ($files as $f) {
+        echo "UNSAFE DUPLICATE: {$name} declared in " . count($files) . " files; unguarded in:\n";
+        foreach ($unguarded as $f) {
             echo "   - " . str_replace($root, '', $f) . "\n";
         }
         $fail++;
