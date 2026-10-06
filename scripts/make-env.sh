@@ -58,7 +58,7 @@ WP_CACHE=0
 BAMERO_INTERNAL_ID_SALT='$(salt)'
 
 # --- SMS.ir (دستی تکمیل کنید) ---
-SMS_PROVIDER=smsir
+SMS_PROVIDER=sms_ir
 SMS_TIMEOUT=120
 SMS_IR_API_BASE_URL=https://api.sms.ir/v1/
 SMS_IR_API_KEY=
