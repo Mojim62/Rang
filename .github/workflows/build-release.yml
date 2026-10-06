@@ -1,8 +1,9 @@
-name: Build deploy package
+name: Build release package
 
 on:
   push:
     tags: ['v*']
+    branches: ['main']
   workflow_dispatch:
 
 permissions:
@@ -12,22 +13,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - name: Checkout (full, for git describe)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Assemble clean deploy bundle
-        run: |
-          mkdir -p dist/stage
-          cp wp-config.php dist/stage/
-          cp -R wp-content dist/stage/wp-content
-          find dist/stage -type d \( -name '.git' -o -name 'node_modules' \) -prune -exec rm -rf {} + 2>/dev/null || true
-          find dist/stage -type f -name '.DS_Store' -delete 2>/dev/null || true
-          cd dist/stage
-          zip -r -q ../bamero-deploy.zip wp-config.php wp-content
+      # یک builder canonical: همان اسکریپتی که local developer اجرا می‌کند
+      - name: Build bamero-release.zip
+        run: bash scripts/build-release.sh
 
-      - name: Upload deploy artifact
+      - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bamero-deploy
-          path: dist/bamero-deploy.zip
+          name: bamero-release
+          path: dist/bamero-release.zip
           retention-days: 30
+          if-no-files-found: error
