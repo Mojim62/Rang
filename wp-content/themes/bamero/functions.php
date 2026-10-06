@@ -855,56 +855,17 @@ add_filter('wp_iframe_tag_add_loading_attr', function () {
 // SECURITY HEADERS (sent via PHP when server allows)
 // =============================================================================
 
-/**
- * CSP nonce (SEC-06). Generated once per request.
- *
- * Guarded with function_exists() because the canonical definition lives in the
- * bamero-production-core plugin, which WordPress loads BEFORE the theme. Without
- * this guard PHP aborts with a fatal "Cannot redeclare" error (see audit report).
- */
-if ( ! function_exists( 'bamero_csp_nonce' ) ) {
-    function bamero_csp_nonce() {
-        static $nonce = null;
-        if ($nonce === null) {
-            $nonce = base64_encode(random_bytes(16));
-        }
-        return $nonce;
-    }
-}
-
-if ( ! function_exists( 'bamero_security_headers' ) ) {
-function bamero_security_headers() {
-    if (headers_sent() || is_admin()) {
-        return;
-    }
-    header('X-Content-Type-Options: nosniff');
-    header('X-Frame-Options: SAMEORIGIN');
-    header('Referrer-Policy: strict-origin-when-cross-origin');
-    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
-    $n = bamero_csp_nonce();
-    // CSP-L3 style: no unsafe-inline for scripts; scripts need nonce.
-    // style-src-attr allows the few dynamic inline style attributes (color swatches)
-    // without opening up <style>/<link> to unsafe-inline.
-    $csp = "default-src 'self'; "
-        . "script-src 'self' 'nonce-{$n}'; "
-        . "style-src 'self'; "
-        . "style-src-attr 'unsafe-inline'; "
-        . "font-src 'self'; "
-        . "img-src 'self' data: https:; "
-        . "connect-src 'self'; "
-        . "frame-ancestors 'self'; "
-        . "base-uri 'self'; "
-        . "form-action 'self'";
-    header('Content-Security-Policy: ' . $csp);
-}
-} // end if ( ! function_exists( 'bamero_security_headers' ) )
-add_action('send_headers', 'bamero_security_headers');
+// Canonical owners of bamero_csp_nonce() and bamero_security_headers() live in
+// wp-content/plugins/bamero-production-core (WordPress loads plugins BEFORE the
+// theme, so the plugin copies always win). The theme must NOT redeclare them;
+// every call site below uses a function_exists() guard so the theme stays safe
+// even in the unlikely event the plugin is not active.
 
 function bamero_script_loader_nonce($tag, $handle, $src) {
     if (is_admin()) {
         return $tag;
     }
-    $nonce = esc_attr(bamero_csp_nonce());
+    $nonce = esc_attr(function_exists('bamero_csp_nonce') ? bamero_csp_nonce() : '');
     if (strpos($tag, ' nonce=') === false) {
         $tag = str_replace('<script ', '<script nonce="' . $nonce . '" ', $tag);
     }
@@ -918,7 +879,7 @@ function bamero_inline_script_nonce($attributes) {
         return $attributes;
     }
     if (empty($attributes['nonce'])) {
-        $attributes['nonce'] = bamero_csp_nonce();
+        $attributes['nonce'] = function_exists('bamero_csp_nonce') ? bamero_csp_nonce() : '';
     }
     return $attributes;
 }
