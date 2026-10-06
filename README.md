@@ -74,7 +74,7 @@ Rang/
 ├── GO_LIVE_PHP_HOSTING_FA.md     # راهنمای گام‌به‌گام استقرار روی هاست PHP
 ├── docs/                         # ADR معماری + مدل تهدید (از استقرار عمومی مستثناست)
 ├── tests/                        # گیت‌های CI + دود-تست استیجینگ (staging_smoke.php)
-├── scripts/build-deploy.sh       # ساخت بستهٔ استقرار تمیز (zip بدون docs/tests)
+├── scripts/build-release.sh      # سازندهٔ canonical بستهٔ استقرار (wp-config + .htaccess + wp-content)
 └── wp-content/
     ├── uploads/.htaccess         # ممنوعیت اجرای PHP در پوشهٔ آپلود
     ├── themes/
