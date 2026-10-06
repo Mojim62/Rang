@@ -1,102 +1,114 @@
 #!/usr/bin/env bash
 #
-# Regression tests for tests/check_duplicate_functions.php (guard-aware v2).
+# Regression tests for tests/check_duplicate_functions.php
+# (guard-aware duplicate function detector).
 #
-# Case 1 (THE REGRESSION): guarded declaration in file A + unguarded declaration
-#         of the same name in file B => detector MUST FAIL.
-#         (v1 wrongly marked this safe when any file mentioned function_exists.)
-# Case 2: all declarations guarded => detector MUST PASS.
-# Case 3: single declaration, unguarded => detector MUST PASS.
+# Creates isolated fixture directories in a temp dir (never inside the repo, so
+# the repo-wide detector run is not polluted) and asserts the detector's exit
+# code for each pattern:
 #
+#   1. unguarded duplicate across 2 files        -> MUST FAIL
+#   2. MIXED guard (guarded in one file,
+#      unguarded in the other)                   -> MUST FAIL  (old detector said safe)
+#   3. guarded in both files                     -> MUST PASS
+#   4. two unguarded declarations where one file
+#      merely *uses* function_exists() (no guard) -> MUST FAIL (old detector said safe)
+#   5. same-file redeclaration                   -> MUST FAIL
+#
+# Exit 0 = all regression cases behave as expected.
+
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DETECTOR="$HERE/check_duplicate_functions.php"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-mk_plugin() {
-    mkdir -p "$TMP/wp-content/plugins/testplug"
-}
-
-expect_fail() { # $1=label
-    if php "$ROOT/tests/check_duplicate_functions.php" "$TMP" >/dev/null 2>&1; then
-        echo "  REGRESSION FAIL (detector wrongly PASSed): $1"
-        return 1
-    fi
-    echo "  PASS: $1"
-    return 0
-}
-
-expect_pass() { # $1=label
-    if ! php "$ROOT/tests/check_duplicate_functions.php" "$TMP" >/dev/null 2>&1; then
-        echo "  FAIL (detector wrongly FAILed): $1"
-        return 1
-    fi
-    echo "  PASS: $1"
-    return 0
-}
-
 FAIL=0
 
-# ---- Case 1: guarded in one file, unguarded in another => must FAIL ----
-mk_plugin
-cat > "$TMP/wp-content/plugins/testplug/a.php" <<'PHP'
-<?php
-if ( ! function_exists( 'bamero_csp_nonce' ) ) {
-function bamero_csp_nonce() {
-    return 'a';
+run_case() {
+    local dir="$1"; local expect="$2"; local desc="$3"
+    if php "$DETECTOR" "$dir" >/dev/null 2>&1; then
+        local got="pass"
+    else
+        local got="fail"
+    fi
+    if [ "$got" = "$expect" ]; then
+        echo "  OK   [${desc}]"
+    else
+        echo "  FAIL [${desc}] expected=${expect} got=${got}"
+        FAIL=1
+    fi
 }
-}
-PHP
-cat > "$TMP/wp-content/plugins/testplug/b.php" <<'PHP'
-<?php
-// mentions function_exists but NOT around the declaration
-function bamero_csp_nonce() {
-    return 'b';
-}
-add_action('x', function () { return function_exists('bamero_csp_nonce'); });
-PHP
-echo "[case 1] guarded + unguarded duplicate must fail"
-expect_fail "guarded+unguarded pair" || FAIL=1
-rm -rf "$TMP/wp-content"
 
-# ---- Case 2: all guarded => must pass ----
-mkdir -p "$TMP/wp-content/plugins/testplug"
-cat > "$TMP/wp-content/plugins/testplug/a.php" <<'PHP'
+# --- Case 1: unguarded duplicate across two files -> FAIL
+D="$TMP/case1_unguarded"; mkdir -p "$D"
+cat > "$D/a.php" <<'EOF'
 <?php
-if ( ! function_exists( 'bamero_csp_nonce' ) ) {
-function bamero_csp_nonce() {
-    return 'a';
-}
-}
-PHP
-cat > "$TMP/wp-content/plugins/testplug/b.php" <<'PHP'
+function bamero_test_dup() { return 1; }
+EOF
+cat > "$D/b.php" <<'EOF'
 <?php
-if ( ! function_exists( 'bamero_csp_nonce' ) ) {
-function bamero_csp_nonce() {
-    return 'b';
-}
-}
-PHP
-echo "[case 2] all-guarded pair must pass"
-expect_pass "all guarded" || FAIL=1
-rm -rf "$TMP/wp-content"
+function bamero_test_dup() { return 2; }
+EOF
+run_case "$D" fail "unguarded duplicate detected"
 
-# ---- Case 3: single declaration => must pass ----
-mkdir -p "$TMP/wp-content/plugins/testplug"
-cat > "$TMP/wp-content/plugins/testplug/a.php" <<'PHP'
+# --- Case 2: MIXED guard -> FAIL (the load-order trap; old detector said safe)
+D="$TMP/case2_mixed"; mkdir -p "$D"
+cat > "$D/a.php" <<'EOF'
 <?php
-function bamero_only_one() {
-    return 'x';
+function bamero_test_mixed() { return 1; }
+EOF
+cat > "$D/b.php" <<'EOF'
+<?php
+if ( ! function_exists( 'bamero_test_mixed' ) ) {
+    function bamero_test_mixed() { return 2; }
 }
-PHP
-echo "[case 3] single declaration must pass"
-expect_pass "single declaration" || FAIL=1
+EOF
+run_case "$D" fail "mixed guard (guarded in one file, unguarded in the other) flagged as unsafe"
+
+# --- Case 3: guarded in both files -> PASS
+D="$TMP/case3_guarded"; mkdir -p "$D"
+cat > "$D/a.php" <<'EOF'
+<?php
+if ( ! function_exists( 'bamero_test_guarded' ) ) {
+    function bamero_test_guarded() { return 1; }
+}
+EOF
+cat > "$D/b.php" <<'EOF'
+<?php
+if ( ! function_exists( 'bamero_test_guarded' ) ) {
+    function bamero_test_guarded() { return 2; }
+}
+EOF
+run_case "$D" pass "all declarations guarded reported safe"
+
+# --- Case 4: usage-level function_exists must NOT count as a guard -> FAIL
+D="$TMP/case4_usage"; mkdir -p "$D"
+cat > "$D/a.php" <<'EOF'
+<?php
+function bamero_test_usage() { return 1; }
+EOF
+cat > "$D/b.php" <<'EOF'
+<?php
+function bamero_test_usage() { return 2; }
+$x = function_exists( 'bamero_test_usage' ) ? bamero_test_usage() : '';
+EOF
+run_case "$D" fail "bare function_exists() usage does not count as a guard"
+
+# --- Case 5: same-file redeclaration -> FAIL
+D="$TMP/case5_samefile"; mkdir -p "$D"
+cat > "$D/a.php" <<'EOF'
+<?php
+function bamero_test_same() { return 1; }
+function bamero_test_same() { return 2; }
+EOF
+run_case "$D" fail "same-file redeclaration detected"
 
 echo
 if [ "$FAIL" -eq 0 ]; then
-    echo "DETECTOR REGRESSION TESTS: PASS"
+    echo "DETECTOR REGRESSION: ALL PASS"
     exit 0
 fi
-echo "DETECTOR REGRESSION TESTS: FAIL"
+echo "DETECTOR REGRESSION: FAILURES DETECTED"
 exit 1
