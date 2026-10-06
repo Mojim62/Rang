@@ -1,0 +1,154 @@
+# ============================================================================
+# Bamero release pipeline — build once, verify, promote the SAME artifact
+#
+# Chain (Google SRE change management / NIST SSDF PO.3.3 & PS.1 / DORA):
+#   CI (static-production-gate on PR/push)
+#     → Build (canonical: scripts/build-release.sh — the ONLY builder)
+#     → Artifact integrity check (SHA256SUMS, no .env, no credentials)
+#     → Staging deploy + automated verification
+#     → Production approval (protected environment: required reviewers)
+#     → Production deploy (concurrency: one at a time)
+#     → Post-deploy verification
+#     → Rollback = re-deploy previous release artifact (never rebuild)
+#
+# ⚠️ DEPLOYMENT TRANSPORT IS DELIBERATELY NOT IMPLEMENTED:
+# the real production/staging hosting has not been chosen yet, so the
+# transport steps fail CLOSED with an explicit message instead of faking an
+# adapter. Once hosting is selected (SSH+WP-CLI, SSH-only, or panel upload),
+# fill the marked steps in the staging-deploy / production-deploy jobs.
+#
+# Before first production use, enable in Settings → Environments:
+#   - environment "production": required reviewers + secrets (DB, SSH, …)
+#   - environment "staging":    staging-scoped secrets only
+# ============================================================================
+name: Bamero release pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      promote_to_production:
+        description: 'بعد از تأیید staging، همان artifact به production برود (نیازمند environment approval)'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bamero-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # --------------------------------------------------------------------------
+  # 1) BUILD ONCE — canonical builder, reproducible, traceable to commit SHA
+  # --------------------------------------------------------------------------
+  build:
+    name: Build release artifact (once)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build with the canonical builder
+        run: bash scripts/build-release.sh
+
+      - name: Verify artifact integrity (fail-closed)
+        run: |
+          cd dist
+          unzip -q bamero-release.zip -d check
+          cd check
+          # 1) checksum manifest must verify
+          sha256sum -c SHA256SUMS
+          # 2) VERSION must be present and non-empty (traceability to source)
+          VERSION="$(cat VERSION)"
+          test -n "$VERSION"
+          echo "artifact version: $VERSION (built from commit ${{ github.sha }})"
+          # 3) no real .env or credential-like values inside the artifact
+          if find . -name '.env' | grep -q .; then
+            echo "::error::.env file found inside release artifact"
+            exit 1
+          fi
+          if grep -rqI --exclude-dir='assets' --exclude-dir='fonts' \
+               -E 'ZARINPAL_MERCHANT_ID=[0-9a-f]{36}|SMS_IR_API_KEY=\..+' . ; then
+            echo "::error::credential-like value found inside release artifact"
+            exit 1
+          fi
+          # 4) dev-only theme tools must not ship
+          if find . -type d -path '*/wp-content/themes/*/tools' | grep -q .; then
+            echo "::error::development tools directory found inside release artifact"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bamero-release-${{ github.sha }}
+          path: dist/bamero-release.zip
+          retention-days: 90
+
+  # --------------------------------------------------------------------------
+  # 2) STAGING — promote the SAME artifact (download, verify, deploy, verify)
+  # --------------------------------------------------------------------------
+  staging-deploy:
+    name: Staging deploy + automated verification
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: bamero-release-${{ github.sha }}
+
+      - name: Verify promoted artifact is the SAME build (no rebuild)
+        run: |
+          unzip -q bamero-release.zip -d stage
+          cd stage
+          sha256sum -c SHA256SUMS
+          echo "promoting artifact built from commit ${{ github.sha }}"
+
+      - name: Deploy to staging (transport — NOT CONFIGURED, fail-closed)
+        run: |
+          echo "::error::TRANSPORT NOT CONFIGURED — هاست/transport استیجینگ هنوز انتخاب نشده است."
+          echo "این قدم عمداً fail-closed است؛ adapter جعل نشده."
+          echo "پس از انتخاب هاست، دستورات واقعی استقرار (SSH/WP-CLI یا آپلود پنل) اینجاست و سپس:"
+          echo "  post-deploy: wp-cli + tests/health_check.php + tests/staging_smoke.php"
+          exit 1
+
+  # --------------------------------------------------------------------------
+  # 3) PRODUCTION — explicit approval + same artifact + concurrency 1
+  # --------------------------------------------------------------------------
+  production-deploy:
+    name: Production deploy (approval required)
+    needs: [build, staging-deploy]
+    if: ${{ inputs.promote_to_production }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production   # ← Settings → Environments → production: required reviewers + secrets
+    concurrency:
+      group: bamero-production-deploy
+      cancel-in-progress: false   # only one production deployment at a time
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: bamero-release-${{ github.sha }}
+
+      - name: Verify promoted artifact is the SAME build (no rebuild)
+        run: |
+          unzip -q bamero-release.zip -d prod
+          cd prod
+          sha256sum -c SHA256SUMS
+
+      - name: Deploy to production (transport — NOT CONFIGURED, fail-closed)
+        run: |
+          echo "::error::TRANSPORT NOT CONFIGURED — هاست/transport پروداکشن هنوز انتخاب نشده است."
+          echo "پس از انتخاب هاست، ترتیب اجباری این قدم:"
+          echo "  1) بکاپ فوری دیتابیس + uploads"
+          echo "  2) استقرار همان artifact (sha256sum -c SHA256SUMS)"
+          echo "  3) post-deploy verification: tests/health_check.php (+ staging_smoke در صورت دسترسی wp-cli)"
+          echo "  4) در صورت شکست: rollback به release artifact قبلی (هرگز rebuild نکنید)"
+          exit 1
