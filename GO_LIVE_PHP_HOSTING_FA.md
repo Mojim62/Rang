@@ -195,7 +195,7 @@ wp eval-file tests/staging_smoke.php
 ساخت بستهٔ استقرار تمیز (بدون docs/tests/.git):
 
 ```bash
-bash scripts/build-deploy.sh   # خروجی: dist/bamero-deploy-<date>.zip
+bash scripts/build-release.sh   # خروجی: dist/bamero-release.zip
 ```
 
 ---
