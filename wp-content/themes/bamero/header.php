@@ -125,3 +125,16 @@ defined('ABSPATH') || exit;
     </div>
 </header>
 <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+
+<?php if (!is_admin()) : ?>
+<div class="bamero-mobile-search" role="region" aria-label="<?php echo esc_attr__('جستجوی محصولات', 'bamero'); ?>">
+    <form role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
+        <label class="screen-reader-text" for="bamero-mobile-search-input"><?php echo esc_html__('جستجوی محصولات', 'bamero'); ?></label>
+        <input id="bamero-mobile-search-input" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="جستجوی محصول یا کد رنگ" enterkeyhint="search" autocomplete="off" />
+        <input type="hidden" name="post_type" value="product" />
+        <button type="submit" aria-label="<?php echo esc_attr__('جستجو', 'bamero'); ?>">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+        </button>
+    </form>
+</div>
+<?php endif; ?>
