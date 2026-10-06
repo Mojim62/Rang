@@ -12,7 +12,7 @@
 ## ۲) آپلود
 ```bash
 git clone https://github.com/Mojig62m/Rang.git && cd rang
-bash scripts/build-deploy.sh        # بستهٔ تمیز
+bash scripts/build-release.sh      # خروجی: dist/bamero-release.zip
 # یا مستقیم: فقط wp-config.php و wp-content را آپلود کنید
 ```
 آپلود zip در public_html و Extract.
@@ -48,7 +48,8 @@ cd public_html && bash scripts/quick-install.sh
 ## اشتباهات رایج
 | نشانه | راه‌حل سریع |
 |---|---|
-| صفحهٔ نصب دیتابیس می‌خواهد | `.env` پیدا نمی‌شود — مسیرش را در wp-config چک کنید |
+| صفحهٔ نصب دیتابیس می‌خواهد | `.env` پیدا نمی‌شود — مسیرش را در wp-config چک کنید 
+|
 | quick-install خطای file_mods داد | در `.env` موقتاً `DISALLOW_FILE_MODS=0`، بعد دوباره `1` |
 | درگاه «پیکربندی نشده» | `ZARINPAL_MERCHANT_ID` در `.env` خالی است |
 | دود-تست FAIL جدول outbox | افزونهٔ production-core را یک‌بار غیرفعال/فعال کنید (dbDelta) |

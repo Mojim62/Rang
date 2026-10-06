@@ -36,7 +36,8 @@ bamero-release/
 
 - **`tests/health_check.php`** — سلامت محیط production: WordPress/DB/HTTPS/افزونه‌ها/درگاه/cron/uploads/صفحات حقوقی. **محیط‌آگنوستیک** — تعداد محصول یا دسته برایش مهم نیست.
 - **`tests/seed_validation.php`** — فقط اعتبار دیتای اولیهٔ demo (۲۰ محصول، ۶ دسته، SKU، مقیاس ریالی). در سایت live اجرا نشود.
-- `tests/staging_smoke.php` — اجرای هر دو، مخصوص staging اولیه.
+- `tests/staging_smoke.
+php` — اجرای هر دو، مخصوص staging اولیه.
 
 ## Rollback در ۵ دقیقه
 
@@ -54,7 +55,7 @@ releases/
 
 - **یک build** (`scripts/build-release.sh`)، **یک artifact** (`bamero-release.zip`)
 - **یک مسئول برای هر وظیفه**: یک راه‌حل کش (Cache Enabler یا معادل هاست)؛ نه پنج افزونهٔ بهینه‌سازی
-- **PHP 8.4** هدف production (8.3 سازگاری، 8.5 forward-compat)
+- **PHP 8.3** هدف canonical production — همان نسخه‌ای که CI و production gate با آن تأیید می‌شوند (8.4/8.5 احتمالاً سازگار، اما در CI تأیید نشده‌اند)
 - **نمی‌سازیم**: Docker/K8s/Redis اجباری/صف پیامیده/میکروسرویس — برای ~۱۰۰۰ کاربر، این‌ها debt پیشاپیش‌اند. Redis فقط اگر هاست آماده داشت (optimization، نه prerequisite)
 - **HPOS**: فقط بعد از تأیید سازگاری افزونه‌های بامرو فعال شود
 - Backup: روزانه DB + uploads، هفتگی کامل؛ **حداقل یک restore واقعی**

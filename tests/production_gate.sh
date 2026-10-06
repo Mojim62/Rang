@@ -9,6 +9,7 @@
 #   3. Hard-coded secret scan
 #   4. JSON-LD blocks carry a CSP nonce
 #   5. WordPress core function collisions with theme/plugin helpers
+#   6. Regression self-test for the duplicate detector (guarded+unguarded combo must FAIL)
 #
 set -uo pipefail
 
@@ -21,7 +22,7 @@ echo " root: ${ROOT}"
 echo "=================================================="
 
 echo
-echo "[1/5] PHP syntax lint"
+echo "[1/6] PHP syntax lint"
 while IFS= read -r -d '' f; do
     if ! php -l "$f" >/dev/null 2>&1; then
         echo "  LINT FAIL: ${f}"
@@ -33,13 +34,13 @@ done < <(find "$ROOT" -type f -name '*.php' \
 echo "  done"
 
 echo
-echo "[2/5] Duplicate function declarations (guard-aware)"
+echo "[2/6] Duplicate function declarations (guard-aware, all-files rule)"
 if ! php "$ROOT/tests/check_duplicate_functions.php" "$ROOT"; then
     FAIL=1
 fi
 
 echo
-echo "[3/5] Hard-coded secret scan"
+echo "[3/6] Hard-coded secret scan"
 SECRETS=$(grep -rniE "(password|api_key|api_secret|secret|merchant_id|token)\s*=\s*['\"][A-Za-z0-9_\-]{8,}['\"]" \
     "$ROOT/wp-content" "$ROOT/wp-config.php" 2>/dev/null \
     | grep -viE "env\(|getenv|placeholder|example|your|xxx|change|empty|function|\\\$|_KEY'|_SALT'|_SECRET'|constant" || true)
@@ -52,7 +53,7 @@ else
 fi
 
 echo
-echo "[4/5] JSON-LD CSP nonce coverage"
+echo "[4/6] JSON-LD CSP nonce coverage"
 LDJSON_MISSING=$(grep -rn 'application/ld+json' "$ROOT/wp-content/themes" 2>/dev/null \
     | grep -v 'nonce=' || true)
 if [ -n "$LDJSON_MISSING" ]; then
@@ -64,11 +65,17 @@ else
 fi
 
 echo
-echo "[5/5] wp-config fail-closed secret handling"
+echo "[5/6] wp-config fail-closed secret handling"
 if grep -q "bamero_require_env" "$ROOT/wp-config.php"; then
     echo "  fail-closed env loader present"
 else
     echo "  WARN: wp-config.php does not use fail-closed env loader"
+fi
+
+echo
+echo "[6/6] Regression: duplicate-detector self-test"
+if ! bash "$ROOT/tests/regression/test_duplicate_detector.sh"; then
+    FAIL=1
 fi
 
 echo

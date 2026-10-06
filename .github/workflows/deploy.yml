@@ -1,0 +1,208 @@
+# ============================================================================
+# Bamero deployment pipeline — staging → production (SRE/DORA-aligned)
+#
+# زنجیره: build (artifact واحد) → staging → verification خودکار →
+#          production approval → production → post-deploy verification → rollback
+#
+# اصول این pipeline:
+#   - یک build، یک artifact، promote همان artifact (بدون rebuild per-env)
+#   - scripts/build-release.sh تنها builder canonical است
+#   - شکست هر gate کل pipeline را متوقف می‌کند (هیچ continue-on-error نیست)
+#   - transport واقعی هنوز انتخاب نشده (هاست مشخص نیست)؛ بنابراین هیچ
+#     adapter فیک‌شده‌ای وجود ندارد: هر job قبل از عملیات، contract لازم را
+#     چک می‌کند و در نبود آن با پیام قابل‌اقدام fail می‌شود.
+#   - محرک فقط workflow_dispatch است تا پیش از انتخاب هاست، CI آلوده نشود.
+#   - production در environment جدا با approval + concurrency است.
+#
+# پس از انتخاب هاست (SSH/WP-CLI یا FTP):
+#   1. secretهای transport در environment های staging/production پر شوند.
+#   2. تنها stepهای «TRANSPORT» باید با دستور واقعی جایگزین شوند؛
+#      بقیهٔ pipeline از همین الان آماده است.
+# ============================================================================
+name: Deployment pipeline (staging → production)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit SHA / branch / tag برای build (پیش‌فرض: main)'
+        required: false
+        default: 'main'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bamero-deploy-production
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------
+  # 1) Build: یک artifact واحد، قابل‌ردیابی به commit سازنده
+  # ---------------------------------------------------------------------
+  build:
+    name: Build release artifact (canonical builder)
+    runs-on: ubuntu-latest
+    outputs:
+      build_sha: ${{ steps.resolve.outputs.build_sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.ref || 'main' }}
+
+      # github.sha در workflow_dispatch با ref ورودی یکی نیست؛
+      # commit واقعیِ build از همین‌جا استخراج و همه‌جا استفاده می‌شود.
+      - name: Resolve the exact built commit (traceability)
+        id: resolve
+        run: echo "build_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build bamero-release.zip (scripts/build-release.sh)
+        run: bash scripts/build-release.sh
+
+      - name: Artifact integrity — SHA256SUMS inside the zip must verify
+        run: |
+          V="$(mktemp -d)"
+          unzip -q dist/bamero-release.zip -d "$V"
+          ( cd "$V" && sha256sum -c SHA256SUMS )
+          echo "VERSION: $(cat "$V/VERSION")  (built from commit ${{ steps.resolve.outputs.build_sha }})"
+
+      - name: Upload versioned, commit-traceable artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: bamero-release-${{ steps.resolve.outputs.build_sha }}
+          path: dist/bamero-release.zip
+          retention-days: 30
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------
+  # 2) Staging deploy — همان artifact، بدون rebuild
+  # ---------------------------------------------------------------------
+  staging-deploy:
+    name: Staging deploy (same artifact)
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: bamero-release-${{ needs.build.outputs.build_sha }}
+
+      - name: Transport contract check (fail-fast — no fake deploys)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_STAGING_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_STAGING_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_STAGING_PATH }}
+        run: |
+          missing=0
+          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH; do
+            if [ -z "${!v:-}" ]; then echo "::error::missing secret $v in environment 'staging'"; missing=1; fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::هاست/transport هنوز پیکربندی نشده. پس از انتخاب هاست، DEPLOY_STAGING_HOST/USER/PATH را در environment 'staging' تنظیم کنید. هیچ استقرار فیک انجام نشد."
+            exit 1
+          fi
+
+      # TRANSPORT (پس از انتخاب هاست جایگزین شود):
+      #   rsync/scp بسته + پشتیبان‌گیری DB/uploads (قبل از جایگزینی فایل‌ها)
+      #   + استخراج به releases/<VERSION> + سوییچ symlink/current
+      #   + اجرای tests/health_check.php روی staging
+      - name: TRANSPORT — deploy to staging (not implemented until hosting is chosen)
+        run: |
+          echo "::error::Staging transport adapter هنوز پیاده نشده — هاست انتخاب نشده. این step عمداً fail می‌شود تا هیچ deployment فیک ثبت نشود."
+          exit 1
+
+  # ---------------------------------------------------------------------
+  # 3) Staging verification — health + smoke + (در صورت وجود browser) QA
+  # ---------------------------------------------------------------------
+  staging-verify:
+    name: Staging automated verification
+    needs: staging-deploy
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Verification contract check (fail-fast)
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          STAGING_WP: ${{ secrets.STAGING_WP_CLI }}
+        run: |
+          if [ -z "${STAGING_URL:-}" ]; then
+            echo "::error::STAGING_URL در environment 'staging' تنظیم نشده — verification ممکن نیست."
+            exit 1
+          fi
+      # TRANSPORT (پس از انتخاب هاست):
+      #   wp eval-file tests/staging_smoke.php  (health + seed، fail-closed)
+      #   + curl HTTPS/site URL/product page/cart/checkout
+      #   + browser QA (desktop/mobile) در صورت وجود runner
+      - name: TRANSPORT — run health + smoke on staging (not implemented until hosting is chosen)
+        run: |
+          echo "::error::Verification adapter هنوز پیاده نشده — همین‌جاست که runtime evidence (WordPress boot, DB, theme, WooCommerce, cart/checkout) اثبات می‌شود."
+          exit 1
+
+  # ---------------------------------------------------------------------
+  # 4) Production deploy — approval صریح + concurrency
+  # ---------------------------------------------------------------------
+  production-deploy:
+    name: Production deploy (approval required)
+    needs: staging-verify
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      # required reviewers از تنظیمات environment در GitHub خوانده می‌شود؛
+      # بدون approval انسانی، این job اجرا نمی‌شود.
+    concurrency:
+      group: bamero-production-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: bamero-release-${{ needs.build.outputs.build_sha }}
+
+      - name: Transport contract check (fail-fast — no fake deploys)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_PRODUCTION_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_PRODUCTION_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PRODUCTION_PATH }}
+        run: |
+          missing=0
+          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH; do
+            if [ -z "${!v:-}" ]; then echo "::error::missing secret $v in environment 'production'"; missing=1; fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::پیش از production، هاست واقعی + secretها لازم است. هیچ استقرار فیک انجام نشد."
+            exit 1
+          fi
+
+      # TRANSPORT (پس از انتخاب هاست):
+      #   1) backup DB + uploads (gate: بدون backup موفق، deploy ممنوع)
+      #   2) استخراج همان artifact به releases/<VERSION>
+      #   3) سوییچ symlink + health check
+      #   4) در صورت شکست: برگشت به release قبلی (rollback از artifact، نه rebuild)
+      - name: TRANSPORT — deploy to production (not implemented until hosting is chosen)
+        run: |
+          echo "::error::Production transport adapter هنوز پیاده نشده — هاست انتخاب نشده. این step عمداً fail می‌شود."
+          exit 1
+
+  # ---------------------------------------------------------------------
+  # 5) Post-deploy verification روی production
+  # ---------------------------------------------------------------------
+  production-verify:
+    name: Post-deploy verification (production)
+    needs: production-deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Post-deploy verification contract check (fail-fast)
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        run: |
+          if [ -z "${PRODUCTION_URL:-}" ]; then
+            echo "::error::PRODUCTION_URL در environment 'production' تنظیم نشده — post-deploy verification ممکن نیست."
+            exit 1
+          fi
+      # TRANSPORT: wp eval-file tests/health_check.php + دود-تست HTTPS/صفحهٔ محصول
+      # در صورت شکست: اجرای rollback از release قبلی + health check پس از rollback
+      - name: TRANSPORT — post-deploy health + rollback hook (not implemented until hosting is chosen)
+        run: |
+          echo "::error::Post-deploy verification adapter هنوز پیاده نشده."
+          exit 1
