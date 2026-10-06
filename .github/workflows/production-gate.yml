@@ -21,10 +21,12 @@ jobs:
         run: find . -type f -name '*.php' -not -path './docs/*' -print0 | xargs -0 -n1 php -l
       - name: Production gate
         run: bash tests/production_gate.sh
+      - name: Duplicate-detector regression test
+        run: bash tests/duplicate_detector_regression.sh
       - name: Immutable artifact manifest
         run: |
           mkdir -p artifact
-          find . -type f -not -path './.git/*' -not -path './artifact/*' -print0 | sort -z | xargs -0 sha256sum > artifact/sha256-manifest.txt
+          find . -type f -not-path './.git/*' -not-path './artifact/*' -print0 | sort -z | xargs -0 sha256sum > artifact/sha256-manifest.txt
           tar --exclude=.git --exclude=artifact -czf artifact/bamero-source.tar.gz .
       - uses: actions/upload-artifact@v7
         with:
