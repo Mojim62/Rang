@@ -73,6 +73,42 @@ p  { line-height: 1.9; }
   .bamero-mobile-search { display: block; }
 }
 
+/* فرم جستجوی مشترک (404 / نتایج جستجو) — هماهنگ با نوار موبایل */
+.bamero-searchform {
+  display: flex;
+  gap: 8px;
+  max-inline-size: 560px;
+  margin-block: 14px;
+}
+.bamero-searchform .search-field {
+  flex: 1;
+  min-block-size: 48px;
+  padding-inline: 14px;
+  border: 1px solid var(--modern-line, #dce6ef);
+  border-radius: 12px;
+  background: var(--modern-soft, #f5f8fb);
+  font-size: 1rem;
+  font-family: inherit;
+}
+.bamero-searchform .search-field:focus {
+  outline: none;
+  border-color: var(--modern-blue, #0759a4);
+  box-shadow: 0 0 0 3px rgba(7, 89, 164, 0.14);
+}
+.bamero-searchform .search-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 48px;
+  min-block-size: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--modern-blue, #0759a4);
+  color: #fff;
+  cursor: pointer;
+}
+.error-404 .bamero-searchform, .bamero-empty-state .bamero-searchform { margin-inline: auto; }
+
 /* --- ۴. کارت محصول: ساده، شفاف، با وضعیت موجودی --- */
 .bamero-stock-flag {
   display: inline-block;
@@ -153,15 +189,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .woocommerce div.product div.summary { margin-block-start: 16px; }
   .woocommerce-checkout .col2-set .col-1, .woocommerce-checkout .col2-set .col-2 { padding: 16px; }
   .footer-grid { padding-inline: 16px; }
-  /* دکمهٔ «افزودن به سبد» در فوتر موبایل: همیشه در دسترس */
-  .single-product form.cart {
-    position: sticky;
-    bottom: 0;
-    padding-block: 10px;
-    background: rgba(255, 255, 255, 0.97);
-    border-block-start: 1px solid var(--modern-line, #dce6ef);
-    z-index: 90;
-  }
+  /* نکته: CTA چسبان موبایلِ صفحهٔ محصول در css/woocommerce.css (single_add_to_cart_button،
+     fixed + safe-area) از قبل پیاده و کامل است — این لایه چیزی به آن اضافه نمی‌کند. */
 }
 
 /* --- ۸. کاهش حرکت برای کاربران حساس --- */
