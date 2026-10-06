@@ -13,8 +13,8 @@
  *    in another file safe.
  *  - Any unguarded duplicate is a fatal-error class defect => exit 1.
  *
- * Scans: wp-content/plugins/**/*.php, wp-content/themes/**/*.php (excludes
- * release-time dev dirs under themes/*/tools/).
+ * Scans: all PHP files under wp-content/plugins and wp-content/themes
+ * (excludes release-time dev dirs under any theme "tools" folder).
  */
 
 if (PHP_SAPI !== 'cli' || !empty($_SERVER['REMOTE_ADDR'])) {
@@ -25,7 +25,6 @@ if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
 
-exit(0); // BISECT probe: parse+invoke, skip scan
 $root = isset($argv[1]) ? rtrim($argv[1], '/') : __DIR__;
 
 $dirs = array(
