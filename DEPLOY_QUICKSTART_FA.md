@@ -24,7 +24,7 @@ bamero-release/
 
 | گام | کار | زمان |
 |-----|-----|------|
-| ۱ | هاست PHP **8.4** (حداقل 8.3) + SSL + دیتابیس MySQL | ۱۰ دقیقه |
+| ۱ | هاست PHP **8.3** (نسخهٔ canonical — همان نسخهٔ CI و production gate) + SSL + دیتابیس MySQL | ۱۰ دقیقه |
 | ۲ | دانلود `bamero-release.zip` از Actions و اکسترکت در `public_html` + `sha256sum -c SHA256SUMS` | ۵ دقیقه |
 | ۳ | ساخت `.env` **بیرون از webroot** (مثلاً `/home/ACCOUNT/bamero.env`): اطلاعات دیتابیس، [۸ کلید salt](https://api.wordpress.org/secret-key/1.1/salt/)، `ZARINPAL_MERCHANT_ID`، `ZARINPAL_CURRENCY=IRR` | ۵ دقیقه |
 | ۴ | `https://دامنه/wp-admin/install.php` — نام مدیر **admin نباشد** → فعال‌سازی WooCommerce + تم بامرو + ۶ افزونه | ۵ دقیقه |
@@ -50,11 +50,14 @@ releases/
 قبل از هر ارتقا: `cp -a public_html releases/$(cat public_html/VERSION)`.
 اگر نسخهٔ جدید مشکل داشت: پوشهٔ قبلی را برگردانید و `.env` همان‌جا خارج از webroot سر جای خودش است — دیتابیس دست‌نخورده می‌ماند.
 
+بعد از rollback حتماً: `php tests/health_check.php` (و در صورت دسترسی wp-cli، `tests/staging_smoke.php`) — تا «برگشتن به release قبلی» با evidence سالم باشد، نه فقط حدس.
+pipeline خودکار همین زنجیره در `.github/workflows/deploy.yml` است: build یک‌باره → verify artifact → staging → approval محیط production → deploy → post-deploy verify. قدم transport آن تا انتخاب هاست واقعی، عمداً fail-closed و پیاده‌سازی‌نشده است.
+
 ## قانون‌های این پروژه
 
 - **یک build** (`scripts/build-release.sh`)، **یک artifact** (`bamero-release.zip`)
 - **یک مسئول برای هر وظیفه**: یک راه‌حل کش (Cache Enabler یا معادل هاست)؛ نه پنج افزونهٔ بهینه‌سازی
-- **PHP 8.4** هدف production (8.3 سازگاری، 8.5 forward-compat)
+- **PHP 8.3** هدف production (canonical: CI، production gate و مستندات همگی 8.3؛ سازگار با WordPress 6.7 و WooCommerce 9.x)
 - **نمی‌سازیم**: Docker/K8s/Redis اجباری/صف پیامیده/میکروسرویس — برای ~۱۰۰۰ کاربر، این‌ها debt پیشاپیش‌اند. Redis فقط اگر هاست آماده داشت (optimization، نه prerequisite)
 - **HPOS**: فقط بعد از تأیید سازگاری افزونه‌های بامرو فعال شود
 - Backup: روزانه DB + uploads، هفتگی کامل؛ **حداقل یک restore واقعی**
