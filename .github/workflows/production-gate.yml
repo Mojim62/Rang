@@ -21,9 +21,10 @@ jobs:
         run: find . -type f -name '*.php' -not -path './docs/*' -print0 | xargs -0 -n1 php -l
       - name: Production gate
         run: |
-          set -o pipefail
-          bash tests/production_gate.sh 2>&1 | tee /tmp/gate.log
-          rc="${PIPESTATUS[0]}"
+          set +e
+          bash tests/production_gate.sh > /tmp/gate.log 2>&1
+          rc=$?
+          set -e
           if [ "$rc" -ne 0 ]; then
             tail -40 /tmp/gate.log | awk 'NF' | head -10 | while IFS= read -r line; do
               echo "::error::GATELOG: $line"
