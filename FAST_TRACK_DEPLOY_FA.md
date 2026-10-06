@@ -12,7 +12,7 @@
 ## ۲) آپلود
 ```bash
 git clone https://github.com/Mojig62m/Rang.git && cd rang
-bash scripts/build-deploy.sh        # بستهٔ تمیز
+bash scripts/build-release.sh     # سازندهٔ canonical — خروجی: dist/bamero-release.zip
 # یا مستقیم: فقط wp-config.php و wp-content را آپلود کنید
 ```
 آپلود zip در public_html و Extract.
@@ -28,10 +28,11 @@ DB_NAME=... DB_USER=... DB_PASSWORD=... WP_HOME=https://دامنه \
 ## ۴) نصب وردپرس
 `https://دامنه/wp-admin/install.php` → فقط عنوان/مدیر (نام کاربری **admin** ممنوع).
 
-## ۵) نصب خودکار همه‌چیز — یک دستور
+## ۵) bootstrap یک‌باره (staging / اولین راه‌اندازی) — یک دستور
 ```bash
 cd public_html && bash scripts/quick-install.sh
 ```
+> ⚠️ نقش این اسکریپت **bootstrap یک‌بارهٔ staging/نصب اولیه** است — نه مسیر deployment برای production. برای به‌روزرسانی production همیشه از همان **artifact واحد** (`bamero-release.zip` + `sha256sum -c SHA256SUMS`) استفاده کنید؛ هرگز برای deployment به نصب لحظه‌ای plugin یا خاموش‌کردن `DISALLOW_FILE_MODS=1` وابسته نباشید.
 این دستور پشت‌سرهم: ووکامرس را نصب/فعال می‌کند، تم بامرو و هر ۶ افزونهٔ پروژه را فعال می‌کند، پیوندها/منطقهٔ زمانی/ارز ریال را تنظیم می‌کند و در پایان دود-تست سلامت را اجرا می‌کند.
 
 > اگر wp-cli نیست: در cPanel از «Terminal» استفاده کنید یا `curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && php wp-cli.phar ...`
