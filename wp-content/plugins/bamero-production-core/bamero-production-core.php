@@ -59,10 +59,12 @@ function bamero_rate_limit_login($user, $username) {
 }
 add_filter('authenticate', 'bamero_rate_limit_login', 30, 2);
 
-function bamero_csp_nonce() {
-    static $nonce = null;
-    if (null === $nonce) $nonce = base64_encode(random_bytes(16));
-    return $nonce;
+if (!function_exists('bamero_csp_nonce')) {
+    function bamero_csp_nonce() {
+        static $nonce = null;
+        if (null === $nonce) $nonce = base64_encode(random_bytes(16));
+        return $nonce;
+    }
 }
 add_filter('wp_inline_script_attributes', function ($attributes) {
     $attributes['nonce'] = bamero_csp_nonce();
