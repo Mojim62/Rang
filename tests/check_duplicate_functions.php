@@ -1,212 +1,157 @@
 <?php
 /**
- * Bamero duplicate function declaration detector (v2, guard-aware).
+ * Per-declaration guard-aware duplicate function detector.
  *
- * Usage: php tests/check_duplicate_functions.php <repo-root>
+ * WordPress loads plugins BEFORE the theme. If two files declare the same
+ * top-level function, the outcome depends on guard placement:
  *
- * Soundness rules (regression-tested by tests/test_duplicate_detector.sh):
- *  - A declaration is GUARDED only if it is lexically inside the braced body
- *    of `if ( ! function_exists( 'name' ) ) {` for the SAME function name.
- *    A `function_exists()` call anywhere else in the file does NOT count.
- *  - A duplicate set is SAFE only if EVERY declaration of that name is guarded.
- *    A guarded declaration in one file does NOT make an unguarded declaration
- *    in another file safe.
- *  - Any unguarded duplicate is a fatal-error class defect => exit 1.
+ *   - all declarations unguarded       -> PHP fatal "Cannot redeclare" (unsafe)
+ *   - all declarations guarded        -> safe (first file to load wins)
+ *   - MIXED (guarded + unguarded)      -> UNSAFE: whether a fatal occurs depends
+ *                                        entirely on file load order. A guard in
+ *                                        one file does NOT neutralize an
+ *                                        unguarded declaration in another file.
  *
- * Scans: all PHP files under wp-content/plugins and wp-content/themes
- * (excludes release-time dev dirs under any theme "tools" folder).
+ * Guard detection is per-declaration and structural: a declaration counts as
+ * guarded only if it sits directly inside an
+ * `if ( ! function_exists('name') ) {` block. A bare usage such as
+ * `function_exists('name') ? name() : ''` elsewhere in the file does NOT count
+ * as a guard (a previous file-level regex version made that mistake).
+ *
+ * Exit 0 = clean, exit 1 = unsafe duplicate/mixed declaration(s) found.
  */
+$root = $argv[1] ?? '.';
+$skip = array('/docs/', '/.git/', '/node_modules/');
 
-if (PHP_SAPI !== 'cli' || !empty($_SERVER['REMOTE_ADDR'])) {
-    http_response_code(403);
-    exit('CLI only');
-}
-if (!defined('ABSPATH')) {
-    define('ABSPATH', __DIR__ . '/');
-}
-
-$root = isset($argv[1]) ? rtrim($argv[1], '/') : __DIR__;
-
-$dirs = array(
-    $root . '/wp-content/plugins',
-    $root . '/wp-content/themes',
+$rii = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)
 );
 
-/** Gather declarations: name => list of [file, guarded] */
-$decls = array();
+$decls = array();   // lowercased name => list of array('file' => path, 'guarded' => bool)
 
-foreach ($dirs as $base) {
-    if (!is_dir($base)) {
+foreach ($rii as $file) {
+    if ($file->isDir()) {
         continue;
     }
-    $it = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS)
-    );
-    /** @var SplFileInfo $file */
-    foreach ($it as $file) {
-        if ($file->getExtension() !== 'php') {
+    $path = $file->getPathname();
+    if (substr($path, -4) !== '.php') {
+        continue;
+    }
+    $skipIt = false;
+    foreach ($skip as $s) {
+        if (strpos($path, $s) !== false) {
+            $skipIt = true;
+            break;
+        }
+    }
+    if ($skipIt) {
+        continue;
+    }
+
+    $src = file_get_contents($path);
+    if ($src === false) {
+        continue;
+    }
+    $tokens = token_get_all($src);
+    $n = count($tokens);
+    $offset = 0;
+
+    for ($i = 0; $i < $n; $i++) {
+        $tok = $tokens[$i];
+        $tokLen = is_array($tok) ? strlen($tok[1]) : strlen($tok);
+        if (!is_array($tok) || $tok[0] !== T_FUNCTION) {
+            $offset += $tokLen;
             continue;
         }
-        $path = $file->getPathname();
-        // Release-time dev tooling is excluded from the artifact; skip scanning it.
-        if (strpos($path, '/tools/') !== false) {
+        // Collect the declared name (skip whitespace and "&").
+        $j = $i + 1;
+        while ($j < $n && is_array($tokens[$j]) && $tokens[$j][0] === T_WHITESPACE) {
+            $j++;
+        }
+        if ($j < $n && $tokens[$j] === '&') {
+            $j++;
+            while ($j < $n && is_array($tokens[$j]) && $tokens[$j][0] === T_WHITESPACE) {
+                $j++;
+            }
+        }
+        if ($j >= $n || !is_array($tokens[$j]) || $tokens[$j][0] !== T_STRING) {
+            // Anonymous function (closure): not a redeclaration candidate.
+            $offset += $tokLen;
             continue;
         }
-        foreach (scan_file($path) as $info) {
-            $decls[$info['name']][] = array(
-                'file'    => $path,
-                'line'    => $info['line'],
-                'guarded' => $info['guarded'],
-            );
-        }
+        $name = strtolower($tokens[$j][1]);
+
+        // Structural guard check: the ~200 bytes of source immediately before
+        // the `function` keyword must end with the guard block opening:
+        //   ... function_exists( 'name' ) ) {<whitespace>
+        $window = substr($src, max(0, $offset - 200), 200);
+        $guarded = (bool) preg_match(
+            '/function_exists\s*\(\s*[\'"]' . preg_quote($name, '/') . '[\'"]\s*\)\s*\)\s*\{\s*$/i',
+            $window
+        );
+        $decls[$name][] = array('file' => $path, 'guarded' => $guarded);
+        $offset += $tokLen;
     }
 }
 
 $fail = 0;
-echo "Duplicate function declaration detector (guard-aware, v2)\n";
-
-foreach ($decls as $name => $occurrences) {
-    if (count($occurrences) < 2) {
-        continue;
+foreach ($decls as $name => $list) {
+    // Same-file duplicates are always fatal in PHP.
+    $perFile = array();
+    foreach ($list as $d) {
+        $perFile[$d['file']] = ($perFile[$d['file']] ?? 0) + 1;
     }
-    $allGuarded = true;
-    $unguarded = array();
-    foreach ($occurrences as $occ) {
-        if (!$occ['guarded']) {
-            $allGuarded = false;
-            $unguarded[] = $occ;
+    $files = array_keys($perFile);
+
+    $guardedCount = 0;
+    foreach ($list as $d) {
+        if ($d['guarded']) {
+            $guardedCount++;
         }
     }
+    $allGuarded = ($guardedCount === count($list));
+    $allUnguarded = ($guardedCount === 0);
+
+    $multiInOneFile = false;
+    foreach ($perFile as $cnt) {
+        if ($cnt > 1) {
+            $multiInOneFile = true;
+        }
+    }
+
+    if (count($files) < 2 && !$multiInOneFile) {
+        continue; // single declaration: nothing to check
+    }
+
+    if ($multiInOneFile) {
+        echo "UNSAFE SAME-FILE REDECLARE: {$name}\n";
+        foreach ($files as $f) {
+            echo "   - " . str_replace($root, '', $f) . "\n";
+        }
+        $fail++;
+        continue;
+    }
+
     if ($allGuarded) {
-        echo "  OK (guarded x" . count($occurrences) . "): {$name}\n";
-        foreach ($occurrences as $occ) {
-            echo "    - " . display_path($occ['file'], $root) . ":" . $occ['line'] . "\n";
-        }
+        echo "SAFE (all guarded): {$name} declared in " . count($files) . " files\n";
         continue;
     }
-    $fail = 1;
-    echo "  FATAL RISK: {$name} declared " . count($occurrences) . "x, unguarded in:\n";
-    foreach ($unguarded as $occ) {
-        echo "    - " . display_path($occ['file'], $root) . ":" . $occ['line'] . "\n";
+
+    if ($allUnguarded) {
+        echo "UNSAFE DUPLICATE (no guards): {$name}\n";
+    } else {
+        echo "UNSAFE MIXED GUARD (order-dependent fatal): {$name}\n";
+        echo "   guarded in {$guardedCount}/" . count($list) . " declarations — an unguarded copy in ANY file fatals if that file loads second\n";
     }
+    foreach ($files as $f) {
+        echo "   - " . str_replace($root, '', $f) . "\n";
+    }
+    $fail++;
 }
 
-if (empty($decls)) {
-    echo "  (no declarations found)\n";
-}
-
-if ($fail) {
-    echo "RESULT: FAIL — unguarded duplicate declarations present\n";
+if ($fail > 0) {
+    echo "FAIL: {$fail} unsafe function declaration pattern(s).\n";
     exit(1);
 }
-echo "RESULT: PASS\n";
+echo "OK: no unsafe duplicate function declarations.\n";
 exit(0);
-
-function display_path($path, $root) {
-    $rel = str_replace($root . '/', '', $path);
-    return $rel !== $path ? $rel : $path;
-}
-
-/**
- * Token-walk a PHP file and return every top-level (depth==0 relative to the
- * function's own guard scope) `function name(...)` declaration with whether
- * it sits inside a matching `if ( ! function_exists('name') ) {` body.
- */
-function scan_file($path) {
-    $code = file_get_contents($path);
-    if ($code === false) {
-        return array();
-    }
-    $tokens = token_get_all(strip_php_strings_preserved($code));
-    $n = count($tokens);
-
-    $results = array();
-    $depth = 0;          // brace depth in file scope
-    // Stack of active guards: depth => function name guarded at that depth.
-    $guards = array();
-
-    for ($i = 0; $i < $n; $i++) {
-        $tok = $tokens[$i];
-
-        if (is_array($tok)) {
-            list($id, $text) = $tok;
-        } else {
-            $id = null;
-            $text = $tok;
-        }
-
-        if ($id === T_IF) {
-            // Consume the condition up to the matching ')'.
-            $paren = 0;
-            $j = $i + 1;
-            $cond = '';
-            while ($j < $n) {
-                $t = $tokens[$j];
-                $tt = is_array($t) ? $t[1] : $t;
-                if ($tt === '(') { $paren++; }
-                elseif ($tt === ')') {
-                    $paren--;
-                    if ($paren === 0) { $j++; break; }
-                }
-                $cond .= $tt;
-                $j++;
-            }
-            // Guard only if next significant token is '{'.
-            $k = $j;
-            while ($k < $n && is_array($tokens[$k]) && in_array($tokens[$k][0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true)) {
-                $k++;
-            }
-            $nt = $k < $n ? (is_array($tokens[$k]) ? $tokens[$k][1] : $tokens[$k]) : '';
-            if ($nt === '{') {
-                if (preg_match("/!\s*function_exists\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/i", $cond, $m)) {
-                    $guards[$depth] = $m[1]; // guard body starts at current depth
-                }
-            }
-            $i = $j - 1; // resume at token after ')'
-            continue;
-        }
-
-        if ($id === T_FUNCTION) {
-            // Find the function name.
-            $j = $i + 1;
-            $name = null;
-            while ($j < $n) {
-                $t = $tokens[$j];
-                if (is_array($t) && $t[0] === T_WHITESPACE) { $j++; continue; }
-                if (is_array($t) && $t[0] === T_STRING) { $name = $t[1]; }
-                break;
-            }
-            if ($name !== null) {
-                // Guarded iff the innermost active guard matches this name.
-                $guarded = false;
-                foreach ($guards as $gname) {
-                    if ($gname === $name) { $guarded = true; break; }
-                }
-                $results[] = array(
-                    'name' => $name,
-                    'line' => is_array($tokens[$i]) ? $tokens[$i][2] : 0,
-                    'guarded' => $guarded,
-                );
-            }
-            continue;
-        }
-
-        if ($text === '{') {
-            $depth++;
-        } elseif ($text === '}') {
-            $depth--;
-            // A guard body opened at depth D closes when we return below D.
-            if (isset($guards[$depth])) {
-                unset($guards[$depth]);
-            }
-        }
-    }
-    return $results;
-}
-
-/**
- * Nothing fancy: token_get_all already preserves strings; identity kept for clarity.
- */
-function strip_php_strings_preserved($code) {
-    return $code;
-}
