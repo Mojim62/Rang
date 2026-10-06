@@ -70,17 +70,6 @@ if (taxonomy_exists('product_cat')) {
                     <p class="category-empty"><?php echo esc_html__('هنوز دسته‌بندی محصولی ایجاد نشده است.', 'bamero'); ?></p>
                 <?php endif; ?>
             </div>
-
-            <div class="sidebar-block quote-list-block">
-                <h2 class="sidebar-title"><?php echo esc_html__('لیست استعلام', 'bamero'); ?></h2>
-                <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" style="margin:12px auto;display:block;opacity:.5">
-                    <rect x="18" y="22" width="28" height="30" rx="4" fill="#edf2f7" stroke="#a0aec0"/>
-                    <path d="M24 22v-4a8 8 0 0 1 16 0v4" fill="none" stroke="#a0aec0" stroke-width="2"/>
-                    <circle cx="32" cy="38" r="6" fill="#e53e3e" opacity=".4"/>
-                </svg>
-                <p class="quote-empty"><?php echo esc_html__('لیست استعلام شما خالی است', 'bamero'); ?></p>
-                <a href="<?php echo esc_url(home_url('/consultation/')); ?>" class="button-block"><?php echo esc_html__('شروع استعلام', 'bamero'); ?></a>
-            </div>
         </aside>
     </div>
 </main>
