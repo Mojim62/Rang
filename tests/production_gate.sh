@@ -33,13 +33,13 @@ done < <(find "$ROOT" -type f -name '*.php' \
 echo "  done"
 
 echo
-echo "[2/5] Duplicate function declarations (guard-aware)"
+echo "[2/5] Duplicate function declarations (guard-aware, per-declaration)"
 if ! php "$ROOT/tests/check_duplicate_functions.php" "$ROOT"; then
     FAIL=1
 fi
 
 echo
-echo "[2b/5] Duplicate detector regression tests"
+echo "[2b/5] Duplicate-detector regression tests"
 if ! bash "$ROOT/tests/test_duplicate_detector.sh"; then
     FAIL=1
 fi
