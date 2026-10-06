@@ -59,10 +59,13 @@ function bamero_rate_limit_login($user, $username) {
 }
 add_filter('authenticate', 'bamero_rate_limit_login', 30, 2);
 
+// Canonical owner of bamero_csp_nonce() (plugin loads before theme; theme functions.php keeps a guarded fallback).
+if ( ! function_exists( 'bamero_csp_nonce' ) ) {
 function bamero_csp_nonce() {
     static $nonce = null;
     if (null === $nonce) $nonce = base64_encode(random_bytes(16));
     return $nonce;
+}
 }
 add_filter('wp_inline_script_attributes', function ($attributes) {
     $attributes['nonce'] = bamero_csp_nonce();
@@ -90,6 +93,8 @@ function bamero_disable_unused_features() {
 }
 add_action('init', 'bamero_disable_unused_features', 1);
 
+// Canonical owner of bamero_security_headers() (guarded; theme keeps a fallback).
+if ( ! function_exists( 'bamero_security_headers' ) ) {
 function bamero_security_headers() {
     if (headers_sent()) return;
     header('X-Request-ID: ' . bamero_request_id());
@@ -98,6 +103,7 @@ function bamero_security_headers() {
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
     header('Content-Security-Policy: default-src \'self\'; base-uri \'self\'; object-src \'none\'; frame-ancestors \'self\'; form-action \'self\'; img-src \'self\' data: https:; style-src \'self\'; style-src-attr \'unsafe-inline\'; font-src \'self\'; script-src \'self\' \'nonce-' . bamero_csp_nonce() . '\'; connect-src \'self\' https:;');
+}
 }
 add_action('send_headers', 'bamero_security_headers', 1);
 function bamero_checkout_idempotency($order, $posted) {

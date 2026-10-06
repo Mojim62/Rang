@@ -39,6 +39,12 @@ if ! php "$ROOT/tests/check_duplicate_functions.php" "$ROOT"; then
 fi
 
 echo
+echo "[2b/5] Duplicate detector regression tests"
+if ! bash "$ROOT/tests/test_duplicate_detector.sh"; then
+    FAIL=1
+fi
+
+echo
 echo "[3/5] Hard-coded secret scan"
 SECRETS=$(grep -rniE "(password|api_key|api_secret|secret|merchant_id|token)\s*=\s*['\"][A-Za-z0-9_\-]{8,}['\"]" \
     "$ROOT/wp-content" "$ROOT/wp-config.php" 2>/dev/null \

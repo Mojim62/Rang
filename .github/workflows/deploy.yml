@@ -1,0 +1,167 @@
+name: Deployment pipeline (staging → production)
+
+# Orchestrator only. Release artifact is built ONCE and promoted unchanged.
+# Transport = SSH contract in scripts/deploy-release.sh (fail-closed; requires
+# real host credentials via environment-scoped secrets — never faked).
+#
+# Owner must configure in GitHub UI (see docs/DEPLOYMENT_PIPELINE_FA.md):
+#   - environment "staging" (secrets: DEPLOY_HOST/USER/PATH/SSH_KEY)
+#   - environment "production" + required reviewers (same secret names)
+#   - branch protection: main requires "static-production-gate" + review
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+    inputs:
+      run_rollback:
+        description: 'Rollback instead of deploy'
+        required: false
+        default: 'none'
+        type: choice
+        options: ['none', 'rollback-staging', 'rollback-production']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ---- 1. Gate + single build -------------------------------------------
+  build-once:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Production gate (CI)
+        run: bash tests/production_gate.sh
+      - name: Build release (canonical builder)
+        run: bash scripts/build-release.sh
+      - name: Record artifact checksum
+        run: |
+          sha256sum dist/bamero-release.zip | tee dist/artifact.sha256
+          echo "ARTIFACT_SHA256=$(cut -d' ' -f1 dist/artifact.sha256)" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=main-$(git rev-parse --short HEAD)-$(date -u +%Y%m%d%H%M%S)" >> "$GITHUB_ENV"
+      - name: Upload artifact (single source of promotion)
+        uses: actions/upload-artifact@v7
+        with:
+          name: bamero-release-pipeline
+          path: |
+            dist/bamero-release.zip
+            dist/artifact.sha256
+          retention-days: 30
+          if-no-files-found: error
+
+  # ---- 2. Staging -------------------------------------------------------
+  staging-deploy:
+    needs: build-once
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: bamero-release-pipeline
+          path: dist
+      - name: Deploy artifact to staging (SSH contract)
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          ARTIFACT: dist/bamero-release.zip
+          RELEASE_TAG: staging-${{ github.sha }}
+        run: bash scripts/deploy-release.sh --target staging
+        continue-on-error: false
+      - name: Verify staging
+        run: bash scripts/verify-deployment.sh "$STAGING_URL"
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+
+  staging-verify:
+    needs: staging-deploy
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v7
+      - name: Post-deploy health/smoke over HTTPS
+        run: bash scripts/verify-deployment.sh "${{ secrets.STAGING_URL }}"
+
+  # ---- 3. Production (approval-gated) -----------------------------------
+  production-deploy:
+    needs: [build-once, staging-verify]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_rollback == 'none' || github.event.inputs.run_rollback == '' }}
+    environment:
+      name: production        # required reviewers + prod secrets live HERE only
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: bamero-release-pipeline
+          path: dist
+      - name: Deploy artifact to production (SSH contract, DB backup first)
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          ARTIFACT: dist/bamero-release.zip
+          RELEASE_TAG: production-${{ github.sha }}
+        run: bash scripts/deploy-release.sh --target production
+        continue-on-error: false
+
+  production-verify:
+    needs: production-deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+      - name: Post-deploy health/smoke over HTTPS
+        run: bash scripts/verify-deployment.sh "${{ secrets.PRODUCTION_URL }}"
+
+  # ---- 4. Rollback (previous release dir, NO rebuild) --------------------
+  rollback-staging:
+    if: ${{ github.event.inputs.run_rollback == 'rollback-staging' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - name: Switch staging to previous release (no rebuild)
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: bash scripts/rollback-release.sh
+      - name: Post-rollback health check
+        run: bash scripts/verify-deployment.sh "${{ secrets.STAGING_URL }}"
+
+  rollback-production:
+    if: ${{ github.event.inputs.run_rollback == 'rollback-production' }}
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - name: Switch production to previous release (no rebuild)
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: bash scripts/rollback-release.sh
+      - name: Post-rollback health check
+        run: bash scripts/verify-deployment.sh "${{ secrets.PRODUCTION_URL }}"

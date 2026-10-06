@@ -12,7 +12,7 @@
 ## ۲) آپلود
 ```bash
 git clone https://github.com/Mojig62m/Rang.git && cd rang
-bash scripts/build-deploy.sh        # بستهٔ تمیز
+bash scripts/build-release.sh      # dist/bamero-release.zip (تنها builder canonical)
 # یا مستقیم: فقط wp-config.php و wp-content را آپلود کنید
 ```
 آپلود zip در public_html و Extract.
@@ -34,6 +34,8 @@ cd public_html && bash scripts/quick-install.sh
 ```
 این دستور پشت‌سرهم: ووکامرس را نصب/فعال می‌کند، تم بامرو و هر ۶ افزونهٔ پروژه را فعال می‌کند، پیوندها/منطقهٔ زمانی/ارز ریال را تنظیم می‌کند و در پایان دود-تست سلامت را اجرا می‌کند.
 
+> **نقش این script فقط bootstrap محیط آزمایشی/اولیه است** — نه مسیر deployment. مسیر رسمی استقرار، ترویج همان artifact ساخته‌شده از طریق pipeline است (ببینید `docs/DEPLOYMENT_PIPELINE_FA.md` و `scripts/deploy-release.sh`).
+
 > اگر wp-cli نیست: در cPanel از «Terminal» استفاده کنید یا `curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && php wp-cli.phar ...`
 
 ## ۶) تست نهایی (فقط این را رد نکنید)
@@ -49,6 +51,6 @@ cd public_html && bash scripts/quick-install.sh
 | نشانه | راه‌حل سریع |
 |---|---|
 | صفحهٔ نصب دیتابیس می‌خواهد | `.env` پیدا نمی‌شود — مسیرش را در wp-config چک کنید |
-| quick-install خطای file_mods داد | در `.env` موقتاً `DISALLOW_FILE_MODS=0`، بعد دوباره `1` |
+| quick-install خطای file_mods داد | فقط در محیط bootstrap آزمایشی: در `.env` موقتاً `DISALLOW_FILE_MODS=0`، بعد دوباره `1`. در production این مقدار همیشه `1` می‌ماند |
 | درگاه «پیکربندی نشده» | `ZARINPAL_MERCHANT_ID` در `.env` خالی است |
 | دود-تست FAIL جدول outbox | افزونهٔ production-core را یک‌بار غیرفعال/فعال کنید (dbDelta) |
