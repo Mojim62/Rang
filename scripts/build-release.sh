@@ -39,6 +39,8 @@ cp -R "$ROOT/wp-content"  "$STAGE/bamero-release/wp-content"
 # --- پاکسازی هرگونه باقیماندهٔ توسعه از wp-content ---
 find "$STAGE" -type d \( -name '.git' -o -name 'node_modules' \) -prune -exec rm -rf {} + 2>/dev/null || true
 find "$STAGE" -type f \( -name '.DS_Store' -o -name '.env' -o -name '*.log' \) -delete 2>/dev/null || true
+# ابزارهای توسعهٔ داخلی تم (مثل provisioning موقت) جزء بستهٔ استقرار نیستند
+find "$STAGE" -type d -path '*/wp-content/themes/*/tools' -prune -exec rm -rf {} + 2>/dev/null || true
 # محافظت: هیچ secret نباید داخل بسته باشد
 if grep -rqI --exclude-dir='assets' --exclude-dir='fonts' -E 'ZARINPAL_MERCHANT_ID=[0-9a-f]{36}|SMS_IR_API_KEY=\.+' "$STAGE" 2>/dev/null; then
     echo "خطا: نشانهٔ credential داخل بسته یافت شد — ساخت متوقف شد." >&2
