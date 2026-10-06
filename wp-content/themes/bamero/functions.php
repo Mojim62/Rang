@@ -163,6 +163,14 @@ function bamero_scripts() {
         BAMERO_VERSION
     );
 
+    // Modern Commerce 2026 refresh — خوانایی، موبایل-فرست و جستجوی همیشه‌در‌دسترس
+    wp_enqueue_style(
+        'bamero-modern-commerce-2026',
+        BAMERO_THEME_DIR . '/css/modern-commerce-2026.css',
+        array('bamero-storefront-modern'),
+        BAMERO_VERSION
+    );
+
     // Main script
     wp_enqueue_script(
         'bamero-script',
