@@ -1,1 +1,111 @@
-404: Not Found
+/* Bamero — unified design tokens and local font */
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../assets/fonts/Vazirmatn-wght.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+}
+:root {
+  --font: "Vazirmatn", Tahoma, sans-serif;
+  --bamero-primary: #0057B8;
+  --bamero-primary-dark: #00458f;
+  --bamero-secondary: #F4A300;
+  --bamero-dark: #152238;
+  --bamero-light: #ffffff;
+  --bamero-gray-100: #F8F9FA;
+  --bamero-gray-200: #edf2f7;
+  --bamero-gray-600: #667085;
+  --bamero-success: #2E7D32;
+  --bamero-warning: #ED6C02;
+  --bamero-error: #D32F2F;
+  --bamero-info: #0288D1;
+  --bamero-focus: #F59E0B;
+  --bamero-ink-muted: #526277;
+  --product-accent: #dbe6ef;
+  --bamero-radius: 14px;
+  --bamero-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --bamero-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --bamero-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --bamero-font: "Vazirmatn", Tahoma, sans-serif;
+  --bamero-technical-font: "IBM Plex Mono", "Vazirmatn", monospace;
+  --bamero-container: 1440px;
+  --bamero-space-unit: 8px;
+  /* Backward-compatible aliases for legacy theme components. */
+  --primary: var(--bamero-primary);
+  --primary-dark: var(--bamero-primary-dark);
+  --secondary: var(--bamero-secondary);
+  --dark: var(--bamero-dark);
+  --light: var(--bamero-light);
+  --gray-100: var(--bamero-gray-100);
+  --gray-200: var(--bamero-gray-200);
+  --gray-600: var(--bamero-gray-600);
+  --success: var(--bamero-success);
+  --warning: var(--bamero-warning);
+  --error: var(--bamero-error);
+  --info: var(--bamero-info);
+  --radius: var(--bamero-radius);
+  --shadow: var(--bamero-shadow);
+  --shadow-lg: var(--bamero-shadow-lg);
+  --transition: var(--bamero-transition);
+  --font: var(--bamero-font);
+  --technical-font: var(--bamero-technical-font);
+  --container: var(--bamero-container);
+}
+
+:root {
+  --container-max-width: var(--bamero-container);
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --color-primary: var(--bamero-primary);
+  --color-primary-dark: var(--bamero-primary-dark);
+  --color-secondary: var(--bamero-secondary);
+  --color-text: var(--bamero-dark);
+  --color-text-light: var(--bamero-gray-600);
+  --color-background: var(--bamero-gray-100);
+  --color-surface: var(--bamero-light);
+  --color-border: var(--bamero-gray-200);
+  --color-success: var(--bamero-success);
+  --color-warning: var(--bamero-warning);
+  --color-error: var(--bamero-error);
+  --color-info: var(--bamero-info);
+  --border-radius-sm: 8px;
+  --border-radius-md: var(--bamero-radius);
+  --shadow-md: var(--bamero-shadow);
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-xxl: 32px;
+  --font-weight-bold: 700;
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --text-align: start;
+  --float: inline-start;
+  --grid-column-min-width: 240px;
+  --z-index-popup: 1200;
+  --modern-ink: #12243b;
+  --modern-muted: #64748b;
+  --modern-line: #dce6ef;
+  --modern-surface: #ffffff;
+  --modern-soft: #f5f8fb;
+  --modern-blue: #0759a4;
+  --modern-blue-dark: #073b7a;
+  --modern-gold: #f2b63e;
+  --modern-success: #16704a;
+  --modern-radius: 18px;
+  --modern-shadow: 0 12px 34px rgba(18,36,59,.08);
+  --modern-shadow-hover: 0 20px 42px rgba(18,36,59,.14);
+}
+
+:root {
+  --color-accent: var(--bamero-secondary);
+  --font-primary: var(--bamero-font);
+  --font-weight-normal: 400;
+  --grid-gap: 24px;
+  --shadow-sm: var(--bamero-shadow);
+}
