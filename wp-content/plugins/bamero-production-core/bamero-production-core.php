@@ -170,6 +170,14 @@ function bamero_health_rest_routes() {
         'methods' => WP_REST_Server::READABLE,
         'permission_callback' => '__return_true',
         'callback' => function () {
+            // R5: readiness details are internal environment state. Fail-closed:
+            // without a configured BAMERO_HEALTH_TOKEN the endpoint stays closed;
+            // with one, callers must present it (?token=...).
+            $token = (string) getenv('BAMERO_HEALTH_TOKEN');
+            $given = isset($_GET['token']) ? (string) sanitize_text_field(wp_unslash($_GET['token'])) : '';
+            if ('' === $token || !hash_equals($token, $given)) {
+                return new WP_REST_Response(array('status' => 'forbidden'), 403);
+            }
             $checks = bamero_health_readiness_checks();
             $ready = !in_array(false, $checks, true);
             return new WP_REST_Response(array('status' => $ready ? 'ready' : 'not_ready', 'checks' => $checks), $ready ? 200 : 503);

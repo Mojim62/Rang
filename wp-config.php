@@ -101,6 +101,7 @@ function bamero_require_env(string $key): string {
         die('Configuration error: missing required environment variable: ' . $key);
     }
     if (stripos($value, '' . 'put-your-' . 'unique-phrase') !== false
+        || stripos($value, 'putyour') !== false
         || in_array(strtolower($value), array('changeme', 'secret', 'password', 'null', 'root', ''), true)
     ) {
         http_response_code(500);

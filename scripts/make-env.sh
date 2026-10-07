@@ -15,11 +15,11 @@ salt() {
     head -c 512 /dev/urandom | tr -dc 'a-zA-Z0-9!@#$%^&*()-_=+' | head -c 64
 }
 
-DB_NAME="${DB_NAME:-putyour_db_name}"
-DB_USER="${DB_USER:-putyour_db_user}"
-DB_PASSWORD="${DB_PASSWORD:-putyour_db_password}"
+DB_NAME="${DB_NAME:-}"
+DB_USER="${DB_USER:-}"
+DB_PASSWORD="${DB_PASSWORD:-}"
 DB_HOST="${DB_HOST:-localhost}"
-WP_HOME="${WP_HOME:-https://putyour-domain.ir}"
+WP_HOME="${WP_HOME:-}"
 
 cat > "$OUT" <<ENV
 # .env بامرو — تولیدشده در $(date '+%Y-%m-%d %H:%M')
@@ -62,7 +62,7 @@ SMS_PROVIDER=sms_ir
 SMS_TIMEOUT=120
 SMS_IR_API_BASE_URL=https://api.sms.ir/v1/
 SMS_IR_API_KEY=
-SMS_IR_OTP_PARAMETER=CODE
+SMS_IR_OTP_PARAMETER=Code
 SMS_IR_ORDER_PARAMETER=
 SMS_IR_TEMPLATE_LOGIN_OTP=
 SMS_IR_TEMPLATE_ORDER_PROCESSING=
@@ -77,6 +77,9 @@ ZARINPAL_STARTPAY_URL=https://payment.zarinpal.com/pg/StartPay
 ZARINPAL_MERCHANT_ID=
 ZARINPAL_CURRENCY=IRR
 BAMERO_PAYMENT_WEBHOOK_SECRET='$(salt)'
+
+# --- توکن health (برای wp-json/bamero/v1/health/ready) ---
+BAMERO_HEALTH_TOKEN='$(salt)'
 ENV
 
 chmod 600 "$OUT"

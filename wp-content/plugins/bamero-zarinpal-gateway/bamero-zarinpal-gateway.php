@@ -190,6 +190,11 @@ function bamero_zarinpal_bootstrap() {
 
             $order->update_meta_data('_bamero_zarinpal_authority', $authority);
             $order->update_meta_data('_bamero_zarinpal_currency', $currency);
+            // R2: snapshot the exact amount sent to the gateway; verify must
+            // reuse THIS value, not a re-read of the live order total (an
+            // admin edit/refund between request and callback would desync
+            // verify — ZarinPal code 54 — and fail an already-paid order).
+            $order->update_meta_data('_bamero_zarinpal_amount', $amount);
             $order->save();
             $order->update_status('pending', 'در انتظار بازگشت از زرین‌پال.');
 
@@ -229,7 +234,12 @@ function bamero_zarinpal_bootstrap() {
                 exit;
             }
 
-            $amount = (int) round((float) $order->get_total());
+            // R2: verify with the amount captured at request time (fallback to
+            // the live total only for legacy orders without the snapshot).
+            $amount = (int) $order->get_meta('_bamero_zarinpal_amount');
+            if ($amount <= 0) {
+                $amount = (int) round((float) $order->get_total());
+            }
 
             // The verify amount must be in the SAME currency unit that was used
             // for the payment request, otherwise ZarinPal rejects with code 54

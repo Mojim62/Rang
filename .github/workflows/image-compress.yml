@@ -1,8 +1,7 @@
 name: Compress product images
+# R4: auto-push to main removed — the bot must not bypass branch protection
+# and the production gate. Compress images manually and land them via PR.
 on:
-  push:
-    paths:
-      - "wp-content/plugins/bamero-woocommerce-setup/assets/products/**/*.png"
   workflow_dispatch:
 
 permissions:
