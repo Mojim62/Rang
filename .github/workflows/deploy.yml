@@ -5,13 +5,19 @@ name: Deployment pipeline (staging → production)
 # real host credentials via environment-scoped secrets — never faked).
 #
 # Owner must configure in GitHub UI (see docs/DEPLOYMENT_PIPELINE_FA.md):
-#   - environment "staging" (secrets: DEPLOY_HOST/USER/PATH/SSH_KEY)
-#   - environment "production" + required reviewers (same secret names)
+#   - environment "staging" (secrets: DEPLOY_HOST/USER/PATH/SSH_KEY, STAGING_URL)
+#   - environment "production" + required reviewers (same secret names, PRODUCTION_URL)
 #   - branch protection: main requires "static-production-gate" + review
+#
+# B1 remediation: the push trigger is intentionally REMOVED until the GitHub
+# environments/secrets above exist. Fail-closed by design: without them every
+# push to main would produce a red deployment run and destroy the value of a
+# red signal. Once configured, re-enable by adding back under `on:`:
+#     push:
+#       branches: ['main']
+# Until then this pipeline runs via workflow_dispatch (Actions tab → Run workflow).
 
 on:
-  push:
-    branches: ['main']
   workflow_dispatch:
     inputs:
       run_rollback:
@@ -77,11 +83,8 @@ jobs:
           RELEASE_TAG: staging-${{ github.sha }}
         run: bash scripts/deploy-release.sh --target staging
         continue-on-error: false
-      - name: Verify staging
-        run: bash scripts/verify-deployment.sh "$STAGING_URL"
-        env:
-          STAGING_URL: ${{ secrets.STAGING_URL }}
 
+  # M2 remediation: verification runs ONCE, here, after staging deploy.
   staging-verify:
     needs: staging-deploy
     runs-on: ubuntu-latest

@@ -25,7 +25,7 @@ bamero-release/
 | گام | کار | زمان |
 |-----|-----|------|
 | ۱ | هاست PHP **8.3** (نسخهٔ canonical) + SSL + دیتابیس MySQL | ۱۰ دقیقه |
-| ۲ | دانلود `bamero-release.zip` از Actions و اکسترکت در `public_html` + `sha256sum -c SHA256SUMS` | ۵ دقیقه |
+| ۲ | دانلود **هستهٔ وردپرس فارسی (fa_IR)** از fa.wordpress.org و اکسترکت در `public_html`، سپس بازنویسی `wp-content/`، `wp-config.php` و `.htaccess` آن با محتوای `bamero-release.zip` + `sha256sum -c SHA256SUMS` | ۸ دقیقه |
 | ۳ | ساخت `.env` **بیرون از webroot** (مثلاً `/home/ACCOUNT/bamero.env`): اطلاعات دیتابیس، [۸ کلید salt](https://api.wordpress.org/secret-key/1.1/salt/)، `ZARINPAL_MERCHANT_ID`، `ZARINPAL_CURRENCY=IRR` | ۵ دقیقه |
 | ۴ | `https://دامنه/wp-admin/install.php` — نام مدیر **admin نباشد** → فعال‌سازی WooCommerce + تم بامرو + ۶ افزونه | ۵ دقیقه |
 | ۵ | **Health:** `wp eval-file tests/health_check.php` و **Seed (فقط اولین نصب):** `wp eval-file tests/seed_validation.php` | ۲ دقیقه |
@@ -47,8 +47,8 @@ releases/
 └── 1.0.2/   ← current (symlink یا rename)
 ```
 
-قبل از هر ارتقا: `cp -a public_html releases/$(cat public_html/VERSION)`.
-اگر نسخهٔ جدید مشکل داشت: پوشهٔ قبلی را برگردانید و `.env` همان‌جا خارج از webroot سر جای خودش است — دیتابیس دست‌نخورده می‌ماند.
+قبل از هر ارتقا: docroot فعلی را منجمد کنید: `cp -a public_html releases/$(cat public_html/VERSION)` — گام کامل در docs/ROLLBACK_FA.md (سند canonical).
+اگر نسخهٔ جدید مشکل داشت: **همان artifact قبلی** (zip اثبات‌شده، بدون build مجدد) را مستقر کنید و symlink/current را به آن برگردانید؛ `.env` بیرون از webroot و دیتابیس دست‌نخورده می‌مانند.
 
 ## قانون‌های این پروژه
 
