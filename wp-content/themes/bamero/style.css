@@ -852,3 +852,20 @@ img { max-inline-size: 100%; block-size: auto; }
 @media (max-width: 640px) {
   .bamero-archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 }
+
+
+/* ===== UI hardening (go-live): price RTL, font fallback, mobile safety ===== */
+/* Price unit direction: guarantee «۱۲۳ ریال» renders correctly everywhere,
+   including inside bidi-neutral contexts (tables, WC price HTML fragments). */
+.price, .amount, .woocommerce-Price-amount {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+/* Font insurance: apply the local Vazirmatn stack at the document root too,
+   so no body-level override can ever fall back to a non-Persian default. */
+html {
+  font-family: "Vazirmatn", Tahoma, sans-serif;
+}
+/* Mobile safety: kill horizontal overflow caused by wide grids/tables
+   without creating a scroll container (clip, not hidden). */
+html, body { overflow-x: clip; }

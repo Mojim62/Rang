@@ -16,12 +16,12 @@ do_action('woocommerce_before_cart');
     <table class="shop_table shop_table_responsive cart woocommerce-cart-form__contents" cellspacing="0">
         <thead>
             <tr>
-                <th class="product-remove"><span class="screen-reader-text"><?php esc_html_e('Remove item', 'woocommerce'); ?></span></th>
-                <th class="product-thumbnail"><span class="screen-reader-text"><?php esc_html_e('Thumbnail image', 'woocommerce'); ?></span></th>
-                <th class="product-name"><?php esc_html_e('Product', 'woocommerce'); ?></th>
-                <th class="product-price"><?php esc_html_e('Price', 'woocommerce'); ?></th>
-                <th class="product-quantity"><?php esc_html_e('Quantity', 'woocommerce'); ?></th>
-                <th class="product-subtotal"><?php esc_html_e('Subtotal', 'woocommerce'); ?></th>
+                <th class="product-remove"><span class="screen-reader-text"><?php esc_html_e('حذف محصول', 'bamero'); ?></span></th>
+                <th class="product-thumbnail"><span class="screen-reader-text"><?php esc_html_e('تصویر محصول', 'bamero'); ?></span></th>
+                <th class="product-name"><?php esc_html_e('محصول', 'bamero'); ?></th>
+                <th class="product-price"><?php esc_html_e('قیمت', 'bamero'); ?></th>
+                <th class="product-quantity"><?php esc_html_e('تعداد', 'bamero'); ?></th>
+                <th class="product-subtotal"><?php esc_html_e('جمع جزء', 'bamero'); ?></th>
             </tr>
         </thead>
         <tbody>
@@ -40,7 +40,7 @@ do_action('woocommerce_before_cart');
                                 sprintf(
                                     '<a href="%s" class="remove" aria-label="%s" data-product_id="%s" data-product_sku="%s">&times;</a>',
                                     esc_url(wc_get_cart_remove_url($cart_item_key)),
-                                    esc_attr(sprintf(__('Remove %s from cart', 'woocommerce'), wp_strip_all_tags($_product->get_name()))),
+                                    esc_attr(sprintf(__('حذف %s از سبد خرید', 'bamero'), wp_strip_all_tags($_product->get_name()))),
                                     esc_attr((string) $product_id),
                                     esc_attr($_product->get_sku())
                                 ),
@@ -58,7 +58,7 @@ do_action('woocommerce_before_cart');
                             }
                             ?>
                         </td>
-                        <td class="product-name" data-title="<?php esc_attr_e('Product', 'woocommerce'); ?>">
+                        <td class="product-name" data-title="<?php esc_attr_e('محصول', 'bamero'); ?>">
                             <?php
                             if (!$product_permalink) {
                                 echo wp_kses_post(apply_filters('woocommerce_cart_item_name', $_product->get_name(), $cart_item, $cart_item_key) . '&nbsp;');
@@ -69,10 +69,10 @@ do_action('woocommerce_before_cart');
                             echo wc_get_formatted_cart_item_data($cart_item); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                             ?>
                         </td>
-                        <td class="product-price" data-title="<?php esc_attr_e('Price', 'woocommerce'); ?>">
+                        <td class="product-price" data-title="<?php esc_attr_e('قیمت', 'bamero'); ?>">
                             <?php echo apply_filters('woocommerce_cart_item_price', WC()->cart->get_product_price($_product), $cart_item, $cart_item_key); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </td>
-                        <td class="product-quantity" data-title="<?php esc_attr_e('Quantity', 'woocommerce'); ?>">
+                        <td class="product-quantity" data-title="<?php esc_attr_e('تعداد', 'bamero'); ?>">
                             <?php
                             if ($_product->is_sold_individually()) {
                                 $min_quantity = 1;
@@ -95,7 +95,7 @@ do_action('woocommerce_before_cart');
                             echo apply_filters('woocommerce_cart_item_quantity', $product_quantity, $cart_item_key, $cart_item); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                             ?>
                         </td>
-                        <td class="product-subtotal" data-title="<?php esc_attr_e('Subtotal', 'woocommerce'); ?>">
+                        <td class="product-subtotal" data-title="<?php esc_attr_e('جمع جزء', 'bamero'); ?>">
                             <?php echo apply_filters('woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal($_product, $cart_item['quantity']), $cart_item, $cart_item_key); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </td>
                     </tr>
@@ -108,13 +108,13 @@ do_action('woocommerce_before_cart');
                 <td colspan="6" class="actions">
                     <?php if (wc_coupons_enabled()) : ?>
                         <div class="coupon">
-                            <label for="coupon_code" class="screen-reader-text"><?php esc_html_e('Coupon:', 'woocommerce'); ?></label>
-                            <input type="text" name="coupon_code" class="input-text" id="coupon_code" value="" placeholder="<?php esc_attr_e('Coupon code', 'woocommerce'); ?>" />
-                            <button type="submit" class="button<?php echo esc_attr(wc_wp_theme_get_element_class_name('button') ? ' ' . wc_wp_theme_get_element_class_name('button') : ''); ?>" name="apply_coupon" value="<?php esc_attr_e('Apply coupon', 'woocommerce'); ?>"><?php esc_html_e('Apply coupon', 'woocommerce'); ?></button>
+                            <label for="coupon_code" class="screen-reader-text"><?php esc_html_e('کد تخفیف:', 'bamero'); ?></label>
+                            <input type="text" name="coupon_code" class="input-text" id="coupon_code" value="" placeholder="<?php esc_attr_e('کد تخفیف', 'bamero'); ?>" />
+                            <button type="submit" class="button<?php echo esc_attr(wc_wp_theme_get_element_class_name('button') ? ' ' . wc_wp_theme_get_element_class_name('button') : ''); ?>" name="apply_coupon" value="<?php esc_attr_e('اعمال کد تخفیف', 'bamero'); ?>"><?php esc_html_e('اعمال کد تخفیف', 'bamero'); ?></button>
                             <?php do_action('woocommerce_cart_coupon'); ?>
                         </div>
                     <?php endif; ?>
-                    <button type="submit" class="button<?php echo esc_attr(wc_wp_theme_get_element_class_name('button') ? ' ' . wc_wp_theme_get_element_class_name('button') : ''); ?>" name="update_cart" value="<?php esc_attr_e('Update cart', 'woocommerce'); ?>"><?php esc_html_e('Update cart', 'woocommerce'); ?></button>
+                    <button type="submit" class="button<?php echo esc_attr(wc_wp_theme_get_element_class_name('button') ? ' ' . wc_wp_theme_get_element_class_name('button') : ''); ?>" name="update_cart" value="<?php esc_attr_e('به‌روزرسانی سبد خرید', 'bamero'); ?>"><?php esc_html_e('به‌روزرسانی سبد خرید', 'bamero'); ?></button>
                     <?php do_action('woocommerce_cart_actions'); ?>
                     <?php wp_nonce_field('woocommerce-cart', 'woocommerce-cart-nonce'); ?>
                 </td>
