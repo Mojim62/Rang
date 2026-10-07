@@ -33,8 +33,6 @@ if [ -z "\$CURRENT" ]; then
     echo "ROLLBACK ABORT: no current symlink." >&2
     exit 1
 fi
-# previous release = second-newest release dir
-PREV=\$(ls -1dt releases/*/ | grep -v "/\$CURRENT/" | head -1 || true)
 # \$CURRENT is like releases/<tag>/
 CUR_DIR=\${CURRENT#releases/}
 PREV=\$(ls -1t releases/ | grep -v "\$CUR_DIR" | head -1 || true)
