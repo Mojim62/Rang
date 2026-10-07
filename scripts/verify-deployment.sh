@@ -17,9 +17,8 @@ FAIL=0
 
 check() { # label, url, expected substring (optional)
     local label="$1" target="$2" expect="${3:-}"
-    local body code
-    body=$(curl -sSL --max-time 20 -o /tmp/verify_body -w '%{http_code}' "$target" || echo 000)
-    code="${body##*$'\n'}"
+    local code
+    # M1 remediation: single HTTP request per check (previously two).
     code=$(curl -sSL --max-time 20 -o /tmp/verify_body -w '%{http_code}' "$target" || echo 000)
     if [ "$code" != "200" ]; then
         echo "  FAIL [$label] HTTP $code for $target"
