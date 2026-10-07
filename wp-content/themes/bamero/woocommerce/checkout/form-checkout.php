@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
 do_action('woocommerce_before_checkout_form', WC()->checkout());
 
 if (!WC()->checkout()->is_registration_enabled() && WC()->checkout()->is_registration_required() && !is_user_logged_in()) {
-    echo esc_html(apply_filters('woocommerce_checkout_must_be_logged_in_message', __('You must be logged in to checkout.', 'woocommerce')));
+    echo esc_html(apply_filters('woocommerce_checkout_must_be_logged_in_message', __('برای تکمیل خرید ابتدا وارد شوید.', 'bamero')));
     return;
 }
 ?>
@@ -29,7 +29,7 @@ if (!WC()->checkout()->is_registration_enabled() && WC()->checkout()->is_registr
         <?php do_action('woocommerce_checkout_after_customer_details'); ?>
     <?php endif; ?>
     <?php do_action('woocommerce_checkout_before_order_review_heading'); ?>
-    <h3 id="order_review_heading"><?php esc_html_e('Your order', 'woocommerce'); ?></h3>
+    <h3 id="order_review_heading"><?php esc_html_e('سفارش شما', 'bamero'); ?></h3>
     <?php do_action('woocommerce_checkout_before_order_review'); ?>
     <div id="order_review" class="woocommerce-checkout-review-order">
         <?php do_action('woocommerce_checkout_order_review'); ?>
