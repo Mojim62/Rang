@@ -16,7 +16,7 @@ do_action('woocommerce_before_cart');
     <table class="shop_table shop_table_responsive cart woocommerce-cart-form__contents" cellspacing="0">
         <thead>
             <tr>
-                <th class="product-remove"><span class="screen-reader-text"><?php esc_html_e('حذف محصول', 'bamero'); ?></span></th>
+                <th class="product-remove"><span class="screen-reader-text"><?php esc_html_e('حذف آیتم', 'bamero'); ?></span></th>
                 <th class="product-thumbnail"><span class="screen-reader-text"><?php esc_html_e('تصویر محصول', 'bamero'); ?></span></th>
                 <th class="product-name"><?php esc_html_e('محصول', 'bamero'); ?></th>
                 <th class="product-price"><?php esc_html_e('قیمت', 'bamero'); ?></th>
@@ -114,7 +114,7 @@ do_action('woocommerce_before_cart');
                             <?php do_action('woocommerce_cart_coupon'); ?>
                         </div>
                     <?php endif; ?>
-                    <button type="submit" class="button<?php echo esc_attr(wc_wp_theme_get_element_class_name('button') ? ' ' . wc_wp_theme_get_element_class_name('button') : ''); ?>" name="update_cart" value="<?php esc_attr_e('به‌روزرسانی سبد خرید', 'bamero'); ?>"><?php esc_html_e('به‌روزرسانی سبد خرید', 'bamero'); ?></button>
+                    <button type="submit" class="button<?php echo esc_attr(wc_wp_theme_get_element_class_name('button') ? ' ' . wc_wp_theme_get_element_class_name('button') : ''); ?>" name="update_cart" value="<?php esc_attr_e('به‌روزرسانی سبد', 'bamero'); ?>"><?php esc_html_e('به‌روزرسانی سبد', 'bamero'); ?></button>
                     <?php do_action('woocommerce_cart_actions'); ?>
                     <?php wp_nonce_field('woocommerce-cart', 'woocommerce-cart-nonce'); ?>
                 </td>

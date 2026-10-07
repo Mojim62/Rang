@@ -1,4 +1,4 @@
-/* Bamero — unified design tokens and local font */
+/* Bamero â unified design tokens and local font */
 @font-face {
   font-family: "Vazirmatn";
   src: url("../assets/fonts/Vazirmatn-wght.woff2") format("woff2");
@@ -7,6 +7,7 @@
   font-display: swap;
 }
 :root {
+  --font: "Vazirmatn", Tahoma, sans-serif;
   --bamero-primary: #0057B8;
   --bamero-primary-dark: #00458f;
   --bamero-secondary: #F4A300;

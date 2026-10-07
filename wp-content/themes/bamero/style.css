@@ -2,7 +2,7 @@
 Theme Name: Bamero
 Theme URI: https://github.com/Mojig62m/rang
 Author: Bamero
-Description: فروشگاه رنگ و چسب — RTL فارسی، Vazirmatn، ووکامرس
+Description: ÙØ±ÙØ´Ú¯Ø§Ù Ø±ÙÚ¯ Ù ÚØ³Ø¨ â RTL ÙØ§Ø±Ø³ÛØ VazirmatnØ ÙÙÚ©Ø§ÙØ±Ø³
 Version: 2.0.0
 Text Domain: bamero
 Requires at least: 6.0
@@ -19,7 +19,7 @@ html {
   scroll-behavior: smooth;
 }
 body {
-  font-family: var(--font, "Vazirmatn", Tahoma, sans-serif);
+  font-family: "Vazirmatn", Tahoma, sans-serif;
   font-size: 16px;
   line-height: 1.8;
   color: #2d3748;
@@ -852,20 +852,55 @@ img { max-inline-size: 100%; block-size: auto; }
 @media (max-width: 640px) {
   .bamero-archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 }
-
-
-/* ===== UI hardening (go-live): price RTL, font fallback, mobile safety ===== */
-/* Price unit direction: guarantee «۱۲۳ ریال» renders correctly everywhere,
-   including inside bidi-neutral contexts (tables, WC price HTML fragments). */
-.price, .amount, .woocommerce-Price-amount {
-  direction: rtl;
-  unicode-bidi: isolate;
-}
-/* Font insurance: apply the local Vazirmatn stack at the document root too,
-   so no body-level override can ever fall back to a non-Persian default. */
-html {
+/* ===== UI go-live fixes (additive block) ===== */
+/* 1) Vazirmatn on form controls (inherit chain often broken by WC widgets) */
+input, textarea, select, button, .button, a.button {
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
-/* Mobile safety: kill horizontal overflow caused by wide grids/tables
-   without creating a scroll container (clip, not hidden). */
+
+/* 2) Bidi-safe price amounts: digits + ریال never reorder */
+span.amount, .woocommerce-Price-amount, .price del, .price ins, .bamero-price {
+  unicode-bidi: plaintext;
+  direction: rtl;
+}
+
+/* 3) No horizontal scroll on mobile */
 html, body { overflow-x: clip; }
+
+/* 4) Touch targets >= 44px */
+@media (max-width: 767px) {
+  a.button, button, .button, input[type="submit"],
+  .mini-cart-link, .icon-btn, .menu-toggle, .mobile-menu-toggle {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .site-header { position: static; }
+}
+
+/* 5) Cart table stacks as cards on small screens; labels via data-title (now Persian) */
+@media (max-width: 768px) {
+  .woocommerce-cart-form .shop_table { border: 0; }
+  .woocommerce-cart-form .shop_table thead { display: none; }
+  .woocommerce-cart-form .shop_table,
+  .woocommerce-cart-form .shop_table tbody,
+  .woocommerce-cart-form .shop_table tr,
+  .woocommerce-cart-form .shop_table td { display: block; width: 100%; }
+  .woocommerce-cart-form .shop_table tr { border: 1px solid rgba(21,34,56,.12); border-radius: 14px; margin-block-end: 12px; padding: 10px; }
+  .woocommerce-cart-form .shop_table td { border: 0; text-align: start; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .woocommerce-cart-form .shop_table td::before {
+    content: attr(data-title) " :";
+    font-weight: 600;
+    flex: 0 0 auto;
+  }
+  .woocommerce-cart-form .shop_table td.product-remove::before,
+  .woocommerce-cart-form .shop_table td.product-thumbnail::before { content: none; }
+  .woocommerce-cart-form .shop_table td.product-thumbnail img { max-width: 96px; height: auto; }
+  .woocommerce .coupon { display: flex; gap: 8px; }
+  .woocommerce .coupon .input-text { flex: 1 1 auto; min-width: 0; }
+}
+
+/* 6) Archive grid: 2-up on very small screens */
+@media (max-width: 420px) {
+  .bamero-archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
+/* ===== end UI go-live fixes ===== */
