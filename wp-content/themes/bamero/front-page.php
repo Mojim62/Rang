@@ -28,7 +28,7 @@ if (is_wp_error($categories)) $categories = array();
                 <span><strong>پشتیبانی سریع</strong><small>از طریق شماره موبایل</small></span>
             </div>
         </div>
-        <div class="bamero-hero-art" aria-hidden="true"><div class="bamero-paint-orbit orbit-one"></div><div class="bamero-paint-orbit orbit-two"></div><div class="bamero-paint-can"><span>BAMERO</span><small>professional finish</small></div></div>
+        <div class="bamero-hero-art" aria-hidden="true"><div class="bamero-paint-orbit orbit-one"></div><div class="bamero-paint-orbit orbit-two"></div><div class="bamero-paint-can"><span>BAMERO</span><small>پوشش حرفه‌ای</small></div></div>
     </section>
 
     <section class="bamero-category-strip container" aria-labelledby="category-title">
