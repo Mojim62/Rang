@@ -10,7 +10,7 @@
 
 | مورد | حداقل |
 |------|-------|
-| PHP | 8.1 یا بالاتر؛ **8.3 توصیه می‌شود** (نسخهٔ گیت CI نیز 8.3 است) |
+| PHP | **حداقل 8.3** — `tests/health_check.php` به‌صورت fail-closed همین را اجباری می‌کند و CI نیز روی 8.3 اجرا می‌شود (8.4 برای production توصیه می‌شود) |
 | افزونه‌های PHP | `mbstring`, `curl`, `openssl`, `json`, `gd`/`imagick` |
 | پایگاه‌داده | **MySQL 8.0+ یا MariaDB 10.11+** (توصیهٔ رسمی) با charset `utf8mb4` |
 | SSL | گواهی HTTPS فعال (Let's Encrypt) |
