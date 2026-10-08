@@ -17,16 +17,18 @@ const BAMERO_HEALTH_CHECK_TOKEN = 'BAMERO_HEALTH_TOKEN';
 
 /**
  * Main health check endpoint
- * Access: /health-check.php?token=YOUR_TOKEN
+ * Access: send X-Bamero-Health-Token: YOUR_TOKEN
  */
 function bamero_health_check() {
     header('Content-Type: application/json');
     
-    $token = isset($_GET['token']) ? sanitize_text_field(wp_unslash($_GET['token'])) : '';
+    $token = isset($_SERVER['HTTP_X_BAMERO_HEALTH_TOKEN'])
+        ? trim((string) sanitize_text_field(wp_unslash($_SERVER['HTTP_X_BAMERO_HEALTH_TOKEN'])))
+        : '';
     $env_token = (string) getenv(BAMERO_HEALTH_CHECK_TOKEN);
-    
-    // Allow health check without token in development
-    $is_development = in_array(wp_get_environment_type(), array('development', 'staging', 'local'), true);
+
+    // Only local development may run without an operational token.
+    $is_development = in_array(wp_get_environment_type(), array('development', 'local'), true);
     
     if (empty($env_token) && !$is_development) {
         http_response_code(403);

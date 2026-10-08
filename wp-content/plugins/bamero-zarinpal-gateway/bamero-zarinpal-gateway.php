@@ -189,11 +189,12 @@ function bamero_zarinpal_bootstrap() {
                 return array('result' => 'failure');
             }
 
+            $http_code = (int) wp_remote_retrieve_response_code($response);
             $body   = json_decode(wp_remote_retrieve_body($response), true);
             $code   = isset($body['data']['code']) ? (int) $body['data']['code'] : 0;
             $authority = isset($body['data']['authority']) ? sanitize_text_field((string) $body['data']['authority']) : '';
 
-            if (100 !== $code || '' === $authority) {
+            if ($http_code < 200 || $http_code >= 300 || 100 !== $code || '' === $authority) {
                 $this->log('zarinpal_request_rejected', array('order_id' => $order->get_id(), 'code' => $code));
                 wc_add_notice('درخواست پرداخت رد شد. بعداً دوباره تلاش کنید.', 'error');
                 return array('result' => 'failure');
@@ -285,11 +286,12 @@ function bamero_zarinpal_bootstrap() {
                 )),
             ));
 
+            $http_code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
             $body = is_wp_error($response) ? array() : json_decode(wp_remote_retrieve_body($response), true);
             $code = isset($body['data']['code']) ? (int) $body['data']['code'] : 0;
 
             // 100 = verified now, 101 = already verified (idempotent success).
-            if (100 === $code || 101 === $code) {
+            if ($http_code >= 200 && $http_code < 300 && (100 === $code || 101 === $code)) {
                 $ref = isset($body['data']['ref_id']) ? sanitize_text_field((string) $body['data']['ref_id']) : $authority;
                 $order->update_meta_data('_bamero_zarinpal_ref_id', $ref);
                 $order->save();
