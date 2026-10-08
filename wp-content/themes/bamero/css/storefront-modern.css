@@ -56,8 +56,6 @@ body:before {
 .header-search button { position: absolute; inset-inline-start: 8px; inline-size: 30px; block-size: 30px; border: 0; background: transparent; color: var(--modern-muted); cursor: pointer; }
 .header-actions { gap: 8px; }
 .header-actions .icon-btn, .mini-cart-link { inline-size: 42px; block-size: 42px; border: 1px solid var(--modern-line); background: #fff; }
-.btn-quote { padding-inline: 16px; border-radius: 12px; background: var(--modern-ink); }
-.btn-quote:hover { background: var(--modern-blue); }
 
 .page-hero {
   min-block-size: 220px;
@@ -166,7 +164,6 @@ li.product .product-quick-view:hover { text-decoration: underline; }
   .site-header { padding-block: 10px; }
   .header-actions .icon-btn { display: none; }
   .header-actions { margin-inline-start: auto; }
-  .header-actions .btn-quote { display: none; }
   .shop-layout { display: flex; flex-direction: column; padding-block-start: 18px; }
   .shop-sidebar { order: 2; }
   .woocommerce ul.products { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
