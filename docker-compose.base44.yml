@@ -1,0 +1,175 @@
+# =============================================================================
+# Bamero — Base44 sandbox/dev environment (WordPress + WooCommerce, PHP 8.3)
+# =============================================================================
+# Run from the repo root:
+#   docker compose -f docker-compose.base44.yml up -d --build
+# App:    http://localhost:3000   (public: https://3000-<BASE44_PUBLIC_HOST_SUFFIX>)
+#
+# Design notes
+# - The repo only ships wp-content (theme + plugins) + wp-config.php, NOT the
+#   WordPress core. Core comes from the official wordpress image and is copied
+#   once into the `bamero_html` volume by the image entrypoint.
+# - Our editable source (theme + the 6 Bamero plugins) is bind-mounted from the
+#   repo on top of that volume, so edits are live.
+# - WooCommerce (+ uploads) are installed by the one-shot `setup` service into the
+#   shared volume, never into the repo, so the checkout stays clean.
+# - wp-config.php is fail-closed: it reads env vars (or a .env file next to the web
+#   root). Platform secrets arrive via /run/base44/app.env; the web service also
+#   materialises them into /var/www/.env so mod_php sees them regardless of how
+#   Apache forwards its environment.
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Database
+  # ---------------------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: bamero_root_local_dev
+      MYSQL_DATABASE: bamero_db
+      MYSQL_USER: bamero_user
+      MYSQL_PASSWORD: bamero_local_dev_pass
+    volumes:
+      - bamero_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: on-failure
+
+  # ---------------------------------------------------------------------------
+  # WordPress (Apache + mod_php) — the app entry point on host port 3000
+  # ---------------------------------------------------------------------------
+  wordpress:
+    image: wordpress:php8.3-apache
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    env_file:
+      # Platform-managed secrets (salts/keys). Listed last so it wins.
+      - /run/base44/app.env
+    environment:
+      # Local infrastructure credentials (generated here, not user secrets).
+      DB_NAME: bamero_db
+      DB_USER: bamero_user
+      DB_PASSWORD: bamero_local_dev_pass
+      DB_HOST: db
+      TABLE_PREFIX: wp_bamero_
+      # Public preview origin (never hardcode the resolved host).
+      WP_HOME: https://3000-${BASE44_PUBLIC_HOST_SUFFIX}
+      WP_SITEURL: https://3000-${BASE44_PUBLIC_HOST_SUFFIX}
+      # Dev flags: file mods on (so wp-cli can install WooCommerce), debug on.
+      WP_ENVIRONMENT_TYPE: local
+      WP_DEBUG: "1"
+      WP_DEBUG_LOG: "1"
+      WP_DEBUG_DISPLAY: "0"
+      DISALLOW_FILE_MODS: "0"
+      WP_CACHE: "0"
+      BAMERO_ENVIRONMENT: local
+    volumes:
+      - bamero_html:/var/www/html
+      - ./wp-config.php:/var/www/html/wp-config.php
+      - ./.htaccess:/var/www/html/.htaccess
+      - ./health-check.php:/var/www/html/health-check.php
+      - ./wp-content/themes/bamero:/var/www/html/wp-content/themes/bamero
+      - ./wp-content/plugins/bamero-production-core:/var/www/html/wp-content/plugins/bamero-production-core
+      - ./wp-content/plugins/bamero-mobile-auth:/var/www/html/wp-content/plugins/bamero-mobile-auth
+      - ./wp-content/plugins/bamero-zarinpal-gateway:/var/www/html/wp-content/plugins/bamero-zarinpal-gateway
+      - ./wp-content/plugins/bamero-woocommerce-setup:/var/www/html/wp-content/plugins/bamero-woocommerce-setup
+      - ./wp-content/plugins/bamero-custom-plugin:/var/www/html/wp-content/plugins/bamero-custom-plugin
+      - ./wp-content/plugins/bamero-essential-plugins:/var/www/html/wp-content/plugins/bamero-essential-plugins
+      - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./docker/php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
+    # Sandbox-only Apache tweak: materialise the process environment into
+    # /var/www/.env (read by wp-config.php's loader), tell Apache/PHP that the
+    # preview proxy terminated TLS (otherwise WordPress emits http asset URLs,
+    # which the browser blocks on the https preview page, and the repo's own
+    # .htaccess HTTPS redirect would loop), then run the image entrypoint.
+    entrypoint: ["sh", "-ec"]
+    command:
+      - |
+        env > /var/www/.env
+        a2enmod headers >/dev/null
+        printf '%s\n' \
+          'SetEnv HTTPS on' \
+          'RequestHeader set X-Forwarded-Proto "https" early' \
+          > /etc/apache2/conf-enabled/zz-base44-proxy.conf
+        exec docker-entrypoint.sh apache2-foreground
+    healthcheck:
+      # Fails on any 5xx from the app (e.g. wp-config fail-closed).
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1/wp-login.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    restart: on-failure
+
+  # ---------------------------------------------------------------------------
+  # One-shot setup: install WP core, WooCommerce, theme + Bamero plugins, seed
+  # ---------------------------------------------------------------------------
+  setup:
+    image: wordpress:cli
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    user: "0:0"
+    working_dir: /var/www/html
+    env_file:
+      - /run/base44/app.env
+    environment:
+      DB_NAME: bamero_db
+      DB_USER: bamero_user
+      DB_PASSWORD: bamero_local_dev_pass
+      DB_HOST: db
+      TABLE_PREFIX: wp_bamero_
+      WP_ENVIRONMENT_TYPE: local
+      WP_DEBUG: "1"
+      WP_DEBUG_LOG: "1"
+      DISALLOW_FILE_MODS: "0"
+      BAMERO_ENVIRONMENT: local
+    volumes:
+      - bamero_html:/var/www/html
+      - ./wp-config.php:/var/www/html/wp-config.php
+      - ./wp-content/themes/bamero:/var/www/html/wp-content/themes/bamero
+      - ./wp-content/plugins/bamero-production-core:/var/www/html/wp-content/plugins/bamero-production-core
+      - ./wp-content/plugins/bamero-mobile-auth:/var/www/html/wp-content/plugins/bamero-mobile-auth
+      - ./wp-content/plugins/bamero-zarinpal-gateway:/var/www/html/wp-content/plugins/bamero-zarinpal-gateway
+      - ./wp-content/plugins/bamero-woocommerce-setup:/var/www/html/wp-content/plugins/bamero-woocommerce-setup
+      - ./wp-content/plugins/bamero-custom-plugin:/var/www/html/wp-content/plugins/bamero-custom-plugin
+      - ./wp-content/plugins/bamero-essential-plugins:/var/www/html/wp-content/plugins/bamero-essential-plugins
+    entrypoint: ["sh", "-ec"]
+    command:
+      - |
+        cd /var/www/html
+        if ! wp core is-installed --allow-root; then
+          wp core install --allow-root \
+            --url="https://3000-${BASE44_PUBLIC_HOST_SUFFIX}" \
+            --title="بامرو" \
+            --admin_user="bamero_admin" \
+            --admin_password="bamero_local_admin" \
+            --admin_email="admin@bamero.test" \
+            --skip-email
+        fi
+        if ! wp plugin is-installed woocommerce --allow-root; then
+          wp plugin install woocommerce --activate --allow-root
+        fi
+        wp plugin activate woocommerce --allow-root
+        wp theme activate bamero --allow-root
+        wp plugin activate bamero-production-core bamero-mobile-auth bamero-zarinpal-gateway bamero-woocommerce-setup bamero-custom-plugin bamero-essential-plugins --allow-root
+        wp option update woocommerce_currency IRR --allow-root
+        wp option update woocommerce_currency_pos suffix --allow-root
+        wp option update timezone_string Asia/Tehran --allow-root
+        wp rewrite structure '/%postname%/' --allow-root
+        wp rewrite flush --allow-root
+        # Keep files created as root writable by Apache (uid 33).
+        chown -R 33:33 /var/www/html/wp-content
+
+volumes:
+  bamero_html:
+  bamero_db_data:

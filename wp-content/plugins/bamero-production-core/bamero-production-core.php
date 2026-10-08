@@ -174,8 +174,7 @@ function bamero_health_readiness_checks() {
 function bamero_health_rest_routes() {
     register_rest_route('bamero/v1', '/health/live', array(
         'methods' => WP_REST_Server::READABLE,
-        'permission_callback' => '__retur
-n_true',
+        'permission_callback' => '__return_true',
         'callback' => function () {
             return new WP_REST_Response(array('status' => 'ok', 'service' => 'bamero-wordpress', 'version' => BAMERO_PRODUCTION_CORE_VERSION), 200);
         },
@@ -251,8 +250,7 @@ add_filter('woocommerce_add_to_cart_fragments', 'bamero_cart_fragment');
 function bamero_invalidate_product_cache($post_id) {
     if (get_post_type($post_id) === 'product') delete_transient('bamero_home_products');
 }
-add_action('save_post_product
-', 'bamero_invalidate_product_cache');
+add_action('save_post_product', 'bamero_invalidate_product_cache');
 add_action('before_delete_post', 'bamero_invalidate_product_cache');
 
 function bamero_observe_order($order_id) {
@@ -352,8 +350,7 @@ function bamero_seal_notification_payload(array $payload) {
 }
 
 function bamero_open_notification_payload($sealed) {
-    if (!function_exists('ope
-nssl_decrypt') || !defined('AUTH_KEY') || !AUTH_KEY) return false;
+    if (!function_exists('openssl_decrypt') || !defined('AUTH_KEY') || !AUTH_KEY) return false;
     $raw = base64_decode((string) $sealed, true);
     if (false === $raw || strlen($raw) < 28) return false;
     $iv = substr($raw, 0, 12);
@@ -390,8 +387,7 @@ function bamero_install_notification_outbox() {
         payload_hash char(64) NOT NULL,
         status varchar(20) NOT NULL DEFAULT 'pending',
         retry_count smallint unsigned NOT NULL DEFAULT 0,
-        max_retr
-ies smallint unsigned NOT NULL DEFAULT 5,
+        max_retries smallint unsigned NOT NULL DEFAULT 5,
         provider_message_id varchar(191) NOT NULL DEFAULT '',
         idempotency_key char(64) NOT NULL,
         payload_ciphertext longtext NOT NULL,
@@ -458,8 +454,7 @@ function bamero_queue_notification($order_id, $user_id, $template_key, array $pa
 
 function bamero_sms_provider_send($mobile, $template_key, array $payload, $idempotency_key) {
     $result = apply_filters('bamero_sms_provider_send', null, $mobile, $template_key, $payload, $idempotency_key);
-    if (null === $result) return new WP_Error('sms_provider_not_configured', 'SMS provider i
-s not configured.');
+    if (null === $result) return new WP_Error('sms_provider_not_configured', 'SMS provider is not configured.');
     if (is_wp_error($result)) return $result;
     if (true === $result) return array('provider_message_id' => 'provider_ack');
     return is_array($result) ? $result : new WP_Error('sms_provider_failed', 'SMS provider rejected the request.');

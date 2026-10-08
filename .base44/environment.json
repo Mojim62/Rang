@@ -1,0 +1,19 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    { "name": "AUTH_KEY", "description": "WordPress AUTH_KEY (wp-config.php, fail-closed)", "requiredAtBoot": true },
+    { "name": "SECURE_AUTH_KEY", "description": "WordPress SECURE_AUTH_KEY (wp-config.php, fail-closed)", "requiredAtBoot": true },
+    { "name": "LOGGED_IN_KEY", "description": "WordPress LOGGED_IN_KEY (wp-config.php, fail-closed)", "requiredAtBoot": true },
+    { "name": "NONCE_KEY", "description": "WordPress NONCE_KEY (wp-config.php, fail-closed)", "requiredAtBoot": true },
+    { "name": "AUTH_SALT", "description": "WordPress AUTH_SALT (wp-config.php, fail-closed)", "requiredAtBoot": true },
+    { "name": "SECURE_AUTH_SALT", "description": "WordPress SECURE_AUTH_SALT (wp-config.php, fail-closed)", "requiredAtBoot": true },
+    { "name": "LOGGED_IN_SALT", "description": "WordPress LOGGED_IN_SALT (wp-config.php, fail-closed)", "requiredAtBoot": true },
+    { "name": "NONCE_SALT", "description": "WordPress NONCE_SALT (wp-config.php, fail-closed)", "requiredAtBoot": true },
+    { "name": "BAMERO_INTERNAL_ID_SALT", "description": "Salt for internal customer ids / notification idempotency (falls back to wp_salt('auth'))", "requiredAtBoot": false },
+    { "name": "ZARINPAL_MERCHANT_ID", "description": "Zarinpal merchant id — optional; payment gateway stays unavailable until set", "requiredAtBoot": false },
+    { "name": "SMS_IR_API_KEY", "description": "SMS.ir API key — optional; mobile OTP login/notifications need it (plus SMS_IR_TEMPLATE_* values)", "requiredAtBoot": false },
+    { "name": "BAMERO_HEALTH_TOKEN", "description": "Token for the /wp-json/bamero/v1/health/ready endpoint — optional", "requiredAtBoot": false }
+  ]
+}
