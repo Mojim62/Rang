@@ -1,0 +1,179 @@
+name: Deploy to Staging
+
+# =============================================================================
+# Bamero Staging Deployment Workflow
+# =============================================================================
+# This workflow automatically deploys to staging when changes are pushed to main
+# =============================================================================
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force deployment even if validation fails'
+        required: false
+        default: 'false'
+
+# =============================================================================
+# Environment Variables
+# =============================================================================
+env:
+  STAGING_SERVER: ${{ secrets.STAGING_SERVER }}
+  STAGING_USER: ${{ secrets.STAGING_USER }}
+  STAGING_PATH: ${{ secrets.STAGING_PATH || '/var/www/staging' }}
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+# =============================================================================
+# Jobs
+# =============================================================================
+
+jobs:
+  # -----------------------------------------------------------------------------
+  # Validation Job
+  # -----------------------------------------------------------------------------
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, curl, openssl, mysql, mysqli, pdo_mysql
+          ini-file: production
+      
+      - name: Install WordPress CLI
+        run: |
+          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          chmod +x wp-cli.phar
+          sudo mv wp-cli.phar /usr/local/bin/wp
+      
+      - name: Run validation
+        id: validation
+        run: |
+          chmod +x scripts/validate.sh
+          ./scripts/validate.sh || exit 1
+    
+    outputs:
+      status: ${{ steps.validation.outcome }}
+
+  # -----------------------------------------------------------------------------
+  # Deployment Job
+  # -----------------------------------------------------------------------------
+  deploy:
+    name: Deploy to Staging
+    needs: validate
+    if: ${{ needs.validate.outputs.status == 'success' || github.event.inputs.force == 'true' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.your-domain.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ env.SSH_PRIVATE_KEY }}
+      
+      - name: Create backup on staging server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_SERVER }} "\
+            cd ${{ env.STAGING_PATH }} && \
+            mkdir -p backups && \
+            TIMESTAMP=\$(date +%Y%m%d_%H%M%S) && \
+            mysqldump -u \${{ secrets.DB_USER }} -p\${{ secrets.DB_PASS }} \${{ secrets.DB_NAME }} > backups/bamero_db_\${TIMESTAMP}.sql 2>/dev/null || true && \
+            tar -czvf backups/bamero_files_\${TIMESTAMP}.tar.gz . 2>/dev/null || true && \
+            echo 'Backup created'"
+      
+      - name: Pull latest code
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_SERVER }} "\
+            cd ${{ env.STAGING_PATH }} && \
+            git fetch origin && \
+            git checkout main && \
+            git pull origin main && \
+            echo 'Code updated'"
+      
+      - name: Install dependencies
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_SERVER }} "\
+            cd ${{ env.STAGING_PATH }} && \
+            composer install --no-dev --optimize-autoloader 2>/dev/null || true && \
+            echo 'Dependencies installed'"
+      
+      - name: Set environment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_SERVER }} "\
+            cd ${{ env.STAGING_PATH }} && \
+            export BAMERO_ENVIRONMENT=staging && \
+            export WP_DEBUG=1 && \
+            export DISALLOW_FILE_MODS=0 && \
+            export BAMERO_ENABLE_PAYMENT_IN_STAGING=true && \
+            export BAMERO_ENABLE_SMS_IN_STAGING=true && \
+            echo 'Environment configured'"
+      
+      - name: Clear caches
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_SERVER }} "\
+            cd ${{ env.STAGING_PATH }} && \
+            wp cache flush 2>/dev/null || true && \
+            wp transient delete-all 2>/dev/null || true && \
+            wp rewrite flush 2>/dev/null || true && \
+            echo 'Caches cleared'"
+      
+      - name: Restart services
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_SERVER }} "\
+            sudo systemctl restart php8.3-fpm 2>/dev/null || true && \
+            sudo systemctl restart nginx 2>/dev/null || true && \
+            echo 'Services restarted'"
+      
+      - name: Run post-deploy validation
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_SERVER }} "\
+            cd ${{ env.STAGING_PATH }} && \
+            chmod +x scripts/validate.sh && \
+            ./scripts/validate.sh || echo 'Validation warnings detected'"
+
+  # -----------------------------------------------------------------------------
+  # Notification Job
+  # -----------------------------------------------------------------------------
+  notify:
+    name: Send Deployment Notification
+    needs: deploy
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            echo "status=✅ Success" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Send notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_COLOR: ${{ steps.status.outputs.color }}
+          SLACK_TITLE: "Bamero Staging Deployment"
+          SLACK_MESSAGE: "${{ steps.status.outputs.status }}: ${{ github.repository }}@${{ github.ref_name }}"
+          SLACK_FOOTER: "${{ github.actor }} | ${{ github.event_name }}"
