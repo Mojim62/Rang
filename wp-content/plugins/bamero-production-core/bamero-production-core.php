@@ -42,7 +42,8 @@ function bamero_rate_limit($bucket, $limit, $window) {
     $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
     $key = 'bamero_rl_' . md5($bucket . '|' . $ip);
     // H4: serialize the read-modify-write counter with a MySQL named lock so
-    // concurrent requests cannot slip past the limit (fail-closed on lock miss).
+    // concurrent requests cannot slip past the limit (fail-closed on lock
+ miss).
     global $wpdb;
     $rl_lock = 'bamero_rl_l_' . md5($key);
     $got_lock = (int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 1)', $rl_lock));
@@ -92,7 +93,8 @@ function bamero_rate_limit_account_page() {
 add_action('template_redirect', 'bamero_rate_limit_account_page', 2);
 
 function bamero_disable_unused_features() {
-    remove_action('wp_head', 'rsd_link');
+    remove_action('wp_head',
+ 'rsd_link');
     remove_action('wp_head', 'wlwmanifest_link');
     remove_action('wp_head', 'wp_shortlink_wp_head');
     remove_action('wp_head', 'wp_oembed_add_discovery_links');
@@ -128,7 +130,8 @@ function bamero_checkout_idempotency($order, $posted) {
 }
 add_action('woocommerce_checkout_create_order', 'bamero_checkout_idempotency', 10, 2);
 
-function bamero_private_cache_headers() {
+function bamero_priva
+te_cache_headers() {
     $account = function_exists('is_account_page') && is_account_page();
     $private = (function_exists('is_cart') && (is_cart() || is_checkout() || $account)) || is_user_logged_in();
     if (!$private) return;
@@ -173,7 +176,8 @@ function bamero_health_readiness_checks() {
 function bamero_health_rest_routes() {
     register_rest_route('bamero/v1', '/health/live', array(
         'methods' => WP_REST_Server::READABLE,
-        'permission_callback' => '__return_true',
+        'permission_callback' => '__retur
+n_true',
         'callback' => function () {
             return new WP_REST_Response(array('status' => 'ok', 'service' => 'bamero-wordpress', 'version' => BAMERO_PRODUCTION_CORE_VERSION), 200);
         },
@@ -209,7 +213,8 @@ add_filter('woocommerce_checkout_order_processed', 'bamero_find_idempotent_order
 
 function bamero_verify_payment_callback($payload, $signature) {
     $secret = getenv('BAMERO_PAYMENT_WEBHOOK_SECRET');
-    if (!$secret || !$signature || !is_string($payload)) return false;
+    if (!$secret || !$signature || !
+is_string($payload)) return false;
     $expected = hash_hmac('sha256', $payload, $secret);
     return hash_equals($expected, (string) $signature);
 }
@@ -248,7 +253,8 @@ add_filter('woocommerce_add_to_cart_fragments', 'bamero_cart_fragment');
 function bamero_invalidate_product_cache($post_id) {
     if (get_post_type($post_id) === 'product') delete_transient('bamero_home_products');
 }
-add_action('save_post_product', 'bamero_invalidate_product_cache');
+add_action('save_post_product
+', 'bamero_invalidate_product_cache');
 add_action('before_delete_post', 'bamero_invalidate_product_cache');
 
 function bamero_observe_order($order_id) {
@@ -296,7 +302,8 @@ function bamero_enforce_session_timeout() {
         $start = $now;
     }
 
-    if (($last && ($now - $last) > $limits['idle']) || ($now - $start) > $limits['absolute']) {
+    if (($last && ($n
+ow - $last) > $limits['idle']) || ($now - $start) > $limits['absolute']) {
         bamero_log_event('session_expired', array('user_id' => (int) $user_id, 'reason' => 'timeout'));
         wp_logout();
         update_user_meta($user_id, 'bamero_session_start', $now);
@@ -342,7 +349,8 @@ function bamero_seal_notification_payload(array $payload) {
 }
 
 function bamero_open_notification_payload($sealed) {
-    if (!function_exists('openssl_decrypt') || !defined('AUTH_KEY') || !AUTH_KEY) return false;
+    if (!function_exists('ope
+nssl_decrypt') || !defined('AUTH_KEY') || !AUTH_KEY) return false;
     $raw = base64_decode((string) $sealed, true);
     if (false === $raw || strlen($raw) < 28) return false;
     $iv = substr($raw, 0, 12);
@@ -356,7 +364,7 @@ function bamero_open_notification_payload($sealed) {
 function bamero_notification_schema_validate($template_key, array $payload) {
     $template = sanitize_key($template_key);
     $mobile = preg_replace('/\D+/', '', (string) ($payload['mobile'] ?? ''));
-    $allowed = array('login_otp', 'order_processing', 'order_delivered', 'order_cancelled', 'payment_failed', 'refund_completed');
+    $allowed = array('login_otp', 'order_processing', 'order_delivered', 'order_cancelled', 'payment_failed', 'refund_completed', 'contact_request', 'color_consultation');
     if (!in_array($template, $allowed, true) || strlen($mobile) < 10 || strlen($mobile) > 15) {
         return new WP_Error('notification_schema_invalid', 'Notification schema validation failed before database write.');
     }
@@ -379,7 +387,8 @@ function bamero_install_notification_outbox() {
         payload_hash char(64) NOT NULL,
         status varchar(20) NOT NULL DEFAULT 'pending',
         retry_count smallint unsigned NOT NULL DEFAULT 0,
-        max_retries smallint unsigned NOT NULL DEFAULT 5,
+        max_retr
+ies smallint unsigned NOT NULL DEFAULT 5,
         provider_message_id varchar(191) NOT NULL DEFAULT '',
         idempotency_key char(64) NOT NULL,
         payload_ciphertext longtext NOT NULL,
@@ -419,7 +428,8 @@ function bamero_queue_notification($order_id, $user_id, $template_key, array $pa
     if (is_wp_error($schema)) return $schema;
     $clean = array('mobile' => isset($payload['mobile']) ? (string) $payload['mobile'] : '', 'order_id' => (int) $order_id, 'template_key' => sanitize_key($template_key));
     if (isset($payload['otp'])) { $clean['otp'] = (string) $payload['otp']; }
-    $payload_hash = hash('sha256', wp_json_encode($clean));
+    $payload_hash = hash('sha256', wp
+_json_encode($clean));
     $idem = hash('sha256', $template_key . '|' . (int) $order_id . '|' . $payload_hash);
     $now = current_time('mysql', true);
     $correlation = function_exists('wp_generate_uuid4') ? wp_generate_uuid4() : uniqid('bamero_', true);
@@ -446,7 +456,8 @@ function bamero_queue_notification($order_id, $user_id, $template_key, array $pa
 
 function bamero_sms_provider_send($mobile, $template_key, array $payload, $idempotency_key) {
     $result = apply_filters('bamero_sms_provider_send', null, $mobile, $template_key, $payload, $idempotency_key);
-    if (null === $result) return new WP_Error('sms_provider_not_configured', 'SMS provider is not configured.');
+    if (null === $result) return new WP_Error('sms_provider_not_configured', 'SMS provider i
+s not configured.');
     if (is_wp_error($result)) return $result;
     if (true === $result) return array('provider_message_id' => 'provider_ack');
     return is_array($result) ? $result : new WP_Error('sms_provider_failed', 'SMS provider rejected the request.');
@@ -471,6 +482,7 @@ function bamero_sms_ir_provider_send($result, $mobile, $template_key, array $pay
     if (is_wp_error($response)) return new WP_Error('sms_provider_http_error', 'SMS.ir request failed.');
     $status = (int) wp_remote_retrieve_response_code($response);
     $body = json_decode(wp_remote_retrieve_body($response), true);
+
     if ($status < 200 || $status >= 300 || empty($body['status'])) return new WP_Error('sms_provider_rejected', 'SMS.ir rejected the message.');
     $message_id = isset($body['data']['messageId']) ? (string) $body['data']['messageId'] : hash('sha256', $idempotency_key);
     return array('provider_message_id' => sanitize_text_field($message_id));
@@ -496,7 +508,8 @@ function bamero_process_notification_outbox($limit = 20) {
             continue;
         }
         $result = bamero_sms_provider_send($payload['mobile'], $row->template_key, $payload, $row->idempotency_key);
-        if (!is_wp_error($result)) {
+        if (!is_wp_error($
+result)) {
             $wpdb->update($table, array('status' => 'sent', 'provider_message_id' => sanitize_text_field($result['provider_message_id'] ?? ''), 'locked_at' => null, 'updated_at' => $now), array('id' => $row->id));
             bamero_log_event('notification_sent', array('notification_id' => (int) $row->id, 'correlation_id' => $row->correlation_id));
             continue;
@@ -521,7 +534,8 @@ function bamero_queue_order_sms($order_id, $old_status, $new_status, $order) {
 }
 add_action('woocommerce_order_status_changed', 'bamero_queue_order_sms', 20, 4);
 
-// Mobile-only policy: block platform-generated CUSTOMER mail, but keep the
+// M
+obile-only policy: block platform-generated CUSTOMER mail, but keep the
 // store owner's own notifications (admin_email) alive so new orders are never
 // silent. Everything else is refused at the configuration boundary.
 add_filter('pre_wp_' . 'mail', function ($null, $atts) {

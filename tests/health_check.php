@@ -45,7 +45,8 @@ bamero_health_check('Zarinpal merchant id in env', (bool) getenv('ZARINPAL_MERCH
 bamero_health_check('Zarinpal currency sane', in_array(strtoupper((string) (getenv('ZARINPAL_CURRENCY') ?: 'IRR')), array('IRR', 'IRT'), true));
 
 /* --- Cron & uploads --- */
-bamero_health_check('WP-Cron enabled', !defined('DISABLE_WP_CRON') || !DISABLE_WP_CRON);
+bamero_health_check('WP-Cr
+on enabled', !defined('DISABLE_WP_CRON') || !DISABLE_WP_CRON);
 // M4 remediation: the old check compared against a non-existent option ('disabled_wp_cron')
 // and passed even when DISABLE_WP_CRON was set — false assurance. Now fail-closed:
 // if cron is disabled, system crontab must be verified manually (documented NOT VERIFIED).
@@ -63,7 +64,7 @@ bamero_health_check('No admin user', !get_user_by('login', 'admin'));
 
 /* --- Database: notification outbox table --- */
 global $wpdb;
-$table = $wpdb->prefix . 'bamero_queue_notification';
+$table = $wpdb->prefix . 'bamero_notification_outbox';
 bamero_health_check("Outbox table ({$table})", $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)));
 
 if (!defined('BAMERO_SMOKE_RUNNER')) {
