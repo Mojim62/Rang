@@ -180,17 +180,31 @@ function bamero_verify_otp($phone_raw, $otp_raw) {
         return new WP_Error('otp_expired', __('کد منقضی شده است. دوباره درخواست دهید.', 'bamero-mobile-auth'));
     }
 
-    $attempts = isset($data['attempts']) ? (int) $data['attempts'] : 0;
-    if ($attempts >= BAMERO_MOBILE_AUTH_MAX_ATTEMPTS) {
-        set_transient('bamero_otp_lock_' . md5($phone), 1, BAMERO_MOBILE_AUTH_LOCKOUT);
-        delete_transient(bamero_otp_transient_key($phone));
-        return new WP_Error('locked', __('تعداد تلاش بیش از حد. ۱۵ دقیقه قفل شدید.', 'bamero-mobile-auth'));
+    // H3: serialize the attempt counter per phone with a MySQL named lock so
+    // concurrent submissions can never exceed MAX_ATTEMPTS (same pattern as
+    // bamero_request_otp).
+    global $wpdb;
+    $verify_lock = 'bamero_otp_vf_' . md5($phone);
+    $got_lock = (int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 2)', $verify_lock));
+    if (1 !== $got_lock) {
+        return new WP_Error('rate_limited', __('تعداد درخواست‌ها بیش از حد مجاز است. بعداً تلاش کنید.', 'bamero-mobile-auth'));
     }
 
-    if (!wp_check_password($otp, $data['hash'])) {
-        $data['attempts'] = $attempts + 1;
-        set_transient(bamero_otp_transient_key($phone), $data, BAMERO_MOBILE_AUTH_OTP_TTL);
-        return new WP_Error('otp_mismatch', __('کد تأیید اشتباه است.', 'bamero-mobile-auth'));
+    try {
+        $attempts = isset($data['attempts']) ? (int) $data['attempts'] : 0;
+        if ($attempts >= BAMERO_MOBILE_AUTH_MAX_ATTEMPTS) {
+            set_transient('bamero_otp_lock_' . md5($phone), 1, BAMERO_MOBILE_AUTH_LOCKOUT);
+            delete_transient(bamero_otp_transient_key($phone));
+            return new WP_Error('locked', __('تعداد تلاش بیش از حد. ۱۵ دقیقه قفل شدید.', 'bamero-mobile-auth'));
+        }
+
+        if (!wp_check_password($otp, $data['hash'])) {
+            $data['attempts'] = $attempts + 1;
+            set_transient(bamero_otp_transient_key($phone), $data, BAMERO_MOBILE_AUTH_OTP_TTL);
+            return new WP_Error('otp_mismatch', __('کد تأیید اشتباه است.', 'bamero-mobile-auth'));
+        }
+    } finally {
+        $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $verify_lock));
     }
 
     delete_transient(bamero_otp_transient_key($phone));

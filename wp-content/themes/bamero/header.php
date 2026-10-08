@@ -12,6 +12,7 @@ defined('ABSPATH') || exit;
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <link rel="icon" href="<?php echo esc_url(BAMERO_THEME_DIR . '/images/favicon.png'); ?>" type="image/png">
     <link rel="apple-touch-icon" href="<?php echo esc_url(BAMERO_THEME_DIR . '/images/logo.png'); ?>">
+    <link rel="preload" href="<?php echo esc_url(BAMERO_THEME_DIR . '/assets/fonts/Vazirmatn-wght.woff2'); ?>" as="font" type="font/woff2" crossorigin>
     <?php wp_head(); ?>
 </head>
 <body <?php body_class('rtl'); ?>>

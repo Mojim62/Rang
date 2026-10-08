@@ -41,14 +41,26 @@ function bamero_log_event($event, array $context = array()) {
 function bamero_rate_limit($bucket, $limit, $window) {
     $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
     $key = 'bamero_rl_' . md5($bucket . '|' . $ip);
-    $state = get_transient($key);
-    $state = is_array($state) ? $state : array('count' => 0, 'started' => time());
-    if ((time() - (int) $state['started']) >= $window) {
-        $state = array('count' => 0, 'started' => time());
+    // H4: serialize the read-modify-write counter with a MySQL named lock so
+    // concurrent requests cannot slip past the limit (fail-closed on lock miss).
+    global $wpdb;
+    $rl_lock = 'bamero_rl_l_' . md5($key);
+    $got_lock = (int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 1)', $rl_lock));
+    if (1 !== $got_lock) {
+        return false;
     }
-    $state['count']++;
-    set_transient($key, $state, $window);
-    return (int) $state['count'] <= (int) $limit;
+    try {
+        $state = get_transient($key);
+        $state = is_array($state) ? $state : array('count' => 0, 'started' => time());
+        if ((time() - (int) $state['started']) >= $window) {
+            $state = array('count' => 0, 'started' => time());
+        }
+        $state['count']++;
+        set_transient($key, $state, $window);
+        return (int) $state['count'] <= (int) $limit;
+    } finally {
+        $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $rl_lock));
+    }
 }
 
 function bamero_rate_limit_login($user, $username) {
@@ -292,7 +304,10 @@ function bamero_enforce_session_timeout() {
         exit;
     }
 
-    update_user_meta($user_id, 'bamero_last_activity', $now);
+    // H5: throttle activity persistence — at most one meta write per minute.
+    if (($now - $last) > 60) {
+        update_user_meta($user_id, 'bamero_last_activity', $now);
+    }
 }
 add_action('init', 'bamero_enforce_session_timeout', 20);
 
