@@ -312,8 +312,14 @@ ow - $last) > $limits['idle']) || ($now - $start) > $limits['absolute']) {
     }
 
     // H5: throttle activity persistence — at most one meta write per minute.
+    // Use transient to avoid database write on every request.
+    $activity_key = 'bamero_last_activity_cache_' . $user_id;
+    $cached_last = (int) get_transient($activity_key);
     if (($now - $last) > 60) {
         update_user_meta($user_id, 'bamero_last_activity', $now);
+        set_transient($activity_key, $now, 60);
+    } elseif ($cached_last === 0 && $last > 0) {
+        set_transient($activity_key, $last, 60 - ($now - $last));
     }
 }
 add_action('init', 'bamero_enforce_session_timeout', 20);
@@ -466,6 +472,11 @@ s not configured.');
 /** Native SMS.ir adapter; credentials and template IDs stay in the environment. */
 function bamero_sms_ir_provider_send($result, $mobile, $template_key, array $payload, $idempotency_key) {
     if (null !== $result || 'sms_ir' !== strtolower((string) getenv('SMS_PROVIDER'))) return $result;
+    // Production-only flag: SMS is disabled in staging unless explicitly enabled
+    if (getenv('BAMERO_ENVIRONMENT') === 'staging' && getenv('BAMERO_ENABLE_SMS_IN_STAGING') !== 'true') {
+        bamero_log_event('sms_blocked_staging', array('template_key' => sanitize_key($template_key)));
+        return new WP_Error('sms_disabled_staging', 'SMS delivery is disabled in staging environment.');
+    }
     $api_key = (string) getenv('SMS_IR_API_KEY');
     $template_env = 'SMS_IR_TEMPLATE_' . strtoupper(preg_replace('/[^A-Za-z0-9]+/', '_', $template_key));
     $template_id = (string) getenv($template_env);
