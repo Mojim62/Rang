@@ -200,6 +200,10 @@ function bamero_zarinpal_bootstrap() {
 
             $this->log('zarinpal_request_ok', array('order_id' => $order->get_id()));
 
+            // R7: fast authority→order lookup for the callback; avoids an
+            // unindexed meta_query on every gateway redirect.
+            set_transient('bamero_zp_au_' . md5($authority), $order->get_id(), 7 * DAY_IN_SECONDS);
+
             return array(
                 'result'   => 'success',
                 'redirect' => $this->startpay_base . '/' . rawurlencode($authority),
@@ -210,10 +214,19 @@ function bamero_zarinpal_bootstrap() {
             $authority = isset($_GET['Authority']) ? sanitize_text_field(wp_unslash($_GET['Authority'])) : '';
             $status    = isset($_GET['Status']) ? strtoupper(sanitize_text_field(wp_unslash($_GET['Status']))) : '';
 
-            $orders = $authority
-                ? wc_get_orders(array('limit' => 1, 'return' => 'objects', 'meta_key' => '_bamero_zarinpal_authority', 'meta_value' => $authority))
-                : array();
-            $order = !empty($orders) ? $orders[0] : false;
+            // R7: transient fast-path first; meta_query only as fallback for
+            // legacy orders created before the fast-path existed.
+            $order = false;
+            if ($authority) {
+                $fast_id = (int) get_transient('bamero_zp_au_' . md5($authority));
+                if ($fast_id) {
+                    $order = wc_get_order($fast_id);
+                }
+                if (!$order) {
+                    $orders = wc_get_orders(array('limit' => 1, 'return' => 'objects', 'meta_key' => '_bamero_zarinpal_authority', 'meta_value' => $authority));
+                    $order = !empty($orders) ? $orders[0] : false;
+                }
+            }
 
             if (!$order) {
                 $this->log('zarinpal_callback_unknown_authority');

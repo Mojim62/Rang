@@ -212,17 +212,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; }
   justify-content: center;
   line-height: 1;
 }
-.btn-quote {
-  background: var(--primary);
-  color: #fff !important;
-  padding: 10px 24px;
-  border-radius: var(--radius);
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  display: inline-block;
-}
-.btn-quote:hover { background: var(--primary-dark); }
 .mobile-menu-toggle {
   display: none;
   width: 44px;
@@ -277,7 +266,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; }
     display: block;
     padding: 12px 8px;
   }
-  .btn-quote { display: none; }
   .top-bar-contact .top-email { display: none; }
 }
 
@@ -556,16 +544,6 @@ li.product:hover .product-quick-view {
   color: var(--primary);
   background: rgba(229, 62, 62, 0.05);
 }
-.quote-list-block {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 8px;
-}
-.quote-empty {
-  color: var(--gray-600);
-  font-size: 14px;
-  margin: 12px 0 16px;
-}
 .button-block {
   display: block;
   width: 100%;
@@ -768,7 +746,7 @@ input, select, textarea { border: 1px solid #d7e0ea; border-radius: 12px; min-bl
 .bamero-contact-form label { display: block; margin-block-end: 6px; font-weight: 800; }
 
 /* 2026 production hardening: predictable layout, keyboard focus, touch targets. */
-:where(button, a.button, input[type="submit"], .button, .btn-quote, .chip) { min-block-size: 44px; }
+:where(button, a.button, input[type="submit"], .button, .chip) { min-block-size: 44px; }
 :where(a, button, input, select, textarea):focus-visible { outline: 3px solid var(--bamero-focus, #f59e0b); outline-offset: 3px; }
 img { max-inline-size: 100%; block-size: auto; }
 .woocommerce ul.products li.product img, .product-card img { aspect-ratio: 1 / 1; object-fit: cover; }
