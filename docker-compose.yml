@@ -1,0 +1,167 @@
+version: '3.8'
+
+# =============================================================================
+# Bamero Local Development Environment
+# =============================================================================
+# Usage:
+#   docker-compose up -d
+#   Access: http://localhost:8080
+#   phpMyAdmin: http://localhost:8081
+# =============================================================================
+
+services:
+  # -----------------------------------------------------------------------------
+  # Database (MySQL 8.0)
+  # -----------------------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: bamero_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-bamero_db}
+      MYSQL_USER: ${DB_USER:-bamero_user}
+      MYSQL_PASSWORD: ${DB_PASS:-bamero_pass}
+    volumes:
+      - bamero_db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - bamero_network
+
+  # -----------------------------------------------------------------------------
+  # WordPress with PHP 8.3
+  # -----------------------------------------------------------------------------
+  wordpress:
+    image: wordpress:php8.3-apache
+    container_name: bamero_wordpress
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${DB_USER:-bamero_user}
+      WORDPRESS_DB_PASSWORD: ${DB_PASS:-bamero_pass}
+      WORDPRESS_DB_NAME: ${DB_NAME:-bamero_db}
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DEBUG: 1
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_DEBUG', true);
+        define('WP_DEBUG_DISPLAY', false);
+        define('WP_DEBUG_LOG', true);
+        define('WP_MEMORY_LIMIT', '256M');
+        define('WP_MAX_MEMORY_LIMIT', '512M');
+        define('DISALLOW_FILE_MODS', false);
+        define('FORCE_SSL_ADMIN', false);
+        define('WP_REDIS_HOST', 'redis');
+        define('WP_REDIS_PORT', '6379');
+        define('WP_REDIS_PREFIX', 'wp_');
+        define('BAMERO_ENVIRONMENT', 'development');
+        define('ZARINPAL_MERCHANT_ID', 'sandbox_merchant_id');
+        define('SMS_IR_API_KEY', 'sandbox_api_key');
+        define('BAMERO_ENABLE_PAYMENT_IN_STAGING', true);
+        define('BAMERO_ENABLE_SMS_IN_STAGING', true);
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./docker/php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
+    ports:
+      - "8080:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bamero_network
+
+  # -----------------------------------------------------------------------------
+  # Redis (for caching)
+  # -----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: bamero_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - bamero_redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - bamero_network
+
+  # -----------------------------------------------------------------------------
+  # phpMyAdmin (for database management)
+  # -----------------------------------------------------------------------------
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: bamero_phpmyadmin
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      PMA_ARBITRARY: 1
+    ports:
+      - "8081:80"
+    networks:
+      - bamero_network
+
+  # -----------------------------------------------------------------------------
+  # MailHog (for email testing in development)
+  # -----------------------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: bamero_mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - bamero_network
+
+  # -----------------------------------------------------------------------------
+  # WP-CLI (for command-line management)
+  # -----------------------------------------------------------------------------
+  wpcli:
+    image: wordpress:cli
+    container_name: bamero_wpcli
+    depends_on:
+      - db
+      - wordpress
+    volumes:
+      - ./:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${DB_USER:-bamero_user}
+      WORDPRESS_DB_PASSWORD: ${DB_PASS:-bamero_pass}
+      WORDPRESS_DB_NAME: ${DB_NAME:-bamero_db}
+    networks:
+      - bamero_network
+    profiles:
+      - cli
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  bamero_db_data:
+  bamero_redis_data:
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  bamero_network:
+    driver: bridge
+
+# =============================================================================
+# PHP Configuration Files
+# =============================================================================
+# These files will be mounted into the PHP container
+# Create the docker/php directory first:
+#   mkdir -p docker/php
+# =============================================================================
