@@ -47,6 +47,17 @@ function bamero_zarinpal_bootstrap() {
             $this->init_form_fields();
             $this->init_settings();
 
+            // Production-only flag: Payment is disabled in staging unless explicitly enabled
+            $is_staging = getenv('BAMERO_ENVIRONMENT') === 'staging';
+            $enable_in_staging = getenv('BAMERO_ENABLE_PAYMENT_IN_STAGING') === 'true';
+            if ($is_staging && !$enable_in_staging) {
+                $this->enabled = 'no';
+                $this->description = '\u062f\u0631\u062f\u0627\u062e\u062a \u0627\u06cc\u0646\u062f \u0628\u0627\u0633 \u0632\u0631\u06cc\u0646\u0654\u067e\u0627\u0644 \u0627\u0632 \u0645\u062d\u06cc\u0627 staging \u0648\u0627\u0642\u0639 \u0627\u0633\u062a. \u062a\u0646\u0644\u06cc\u0647 \u062f\u0631\u0644\u0627\u062e BAMERO_ENABLE_PAYMENT_IN_STAGING=true \u0627\u0646\u062c\u0627\u0645 \u062b\u0633 \u0648\u0627\u0631\u062f.';
+                add_action('admin_notices', function() { echo '<div class="notice notice-warning"><p>' . esc_html__('Zarinpal payment is disabled in staging. Set BAMERO_ENABLE_PAYMENT_IN_STAGING=true to enable.', 'bamero-zarinpal-gateway') . '</p></div>'; });
+                add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
+                add_action('woocommerce_api_bamero_zarinpal', array($this, 'handle_callback'));
+                return;
+            }
             // Settings-backed configuration with environment fallback.
             // Environment-only credential: the merchant ID never lives in the database.
             $this->merchant_id   = (string) (getenv('ZARINPAL_MERCHANT_ID') ?: '');
