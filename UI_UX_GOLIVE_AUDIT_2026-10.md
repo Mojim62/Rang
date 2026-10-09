@@ -94,4 +94,19 @@
 
 ## ۵. نتیجه‌گیری
 
-تمام یافته‌های ممیزی با محل دقیق فایل اثبات و در پنج کامیت رفع شد؛ کد مرده و صوری حذف گردید؛ باگ بحرانی ریسپانسیو RTL، breadcrumb مرده، badge سبد کهنه، لایت‌باکس غیرفعال و دو نقص a11y اصلاح شد. تأیید نهایی: CI سبز روی PR (production-gate) و سپس merge به main — وضعیت دقیق در PR ثبت می‌شود.
+تمام یافته‌های ممیزی با محل دقیق فایل اثبات و در پنج کامیت رفع شد؛ کد مرده و صوری حذف گردید؛ باگ بحرانی ریسپانسیو RTL، breadcrumb مرده، badge سبد کهنه، لایت‌باکس غیرفعال و دو نقص a11y اصلاح شد.
+
+---
+
+## ۶. تأیید نهایی Go-Live (اثبات‌شده، ۲۰۲۶-۱۰-۰۹)
+
+| مرحله | شاهد | نتیجه |
+|---|---|---|
+| PR | [#31](https://github.com/Mojim62/Rang/pull/31) — «fix(theme): UI/UX go-live audit — RTL mobile drawer, dead-code removal, a11y & responsive hardening» | باز و مرج‌شده |
+| بررسی CI روی PR | static-production-gate روی head commit `2dffbba` — [run 38004292878](https://github.com/Mojim62/Rang/actions/runs/38004292878/job/114069401620) | ✅ success |
+| Merge به main | کامیت مرج `f9fc144` (+225 / −458 در ۸ فایل، ۲۰۲۶-۱۰-۰۹T23:25:15Z) | کامل |
+| بررسی CI روی main | static-production-gate روی کامیت مرج — [run 38004334424](https://github.com/Mojim62/Rang/actions/runs/38004334424/job/114069528873) (شروع 23:25:21Z، پایان 23:25:39Z) | ✅ success |
+| وضعیت ترکیبی کامیت مرج | Vercel: «Deployment has completed» | ✅ success |
+|Annotations گیت | یک notice اطلاع‌رسانی درباره مهاجرت ubuntu-latest به Ubuntu 26 (از ۲۰۲۶-۱۰-۱۹) — بدون خطا | بدون اقدام |
+
+**جمع‌بندی صادقانه:** زنجیره کامل PR → بررسی سبز → merge به main → بررسی سبز مجدد روی main → استقرار موفق، اثبات شده است. آنچه خارج از دسترسی این ممیزی باقی می‌ماند صرفاً موارد بخش ۴.۳ (رندر مرورگر، Lighthouse، پرداخت/SMS) است که به صراحت در همین گزارش ثبت شده و نیازمند استیجینگ واقعی مالک است.
