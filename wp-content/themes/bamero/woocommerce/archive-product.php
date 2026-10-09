@@ -82,7 +82,7 @@ if ($bamero_whatsapp_float === '' && function_exists('bamero_whatsapp_default'))
 if ($bamero_whatsapp_float) :
 ?>
 <a href="<?php echo esc_url($bamero_whatsapp_float); ?>" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr__('گفتگو در واتساپ', 'bamero'); ?>">
-    <span aria-hidden="true">💬</span>
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.4A10 10 0 1 0 12 2zm5.6 14.3c-.2.7-1.3 1.2-2.1 1.4-.6.1-1.3.2-3.8-.8-3.1-1.3-5.1-4.5-5.3-4.7-.2-.2-1.5-2-1.5-3.8s1-2.7 1.3-3.1c.3-.3.7-.4 1-.4h.7c.2 0 .5 0 .7.6.2.7.8 2.3.9 2.5.1.2.1.4 0 .6-.1.2-.2.4-.3.5-.2.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.2 1.3 2.5 1.5.3.1.5.1.7-.1.2-.2.8-.9 1-1.2.2-.3.4-.2.7-.1.3.1 1.9.9 2.2 1.1.3.2.5.3.6.4.1.2.1.9-.1 1.6z"/></svg>
 </a>
 <?php endif; ?>
 <?php get_footer('shop'); ?>
