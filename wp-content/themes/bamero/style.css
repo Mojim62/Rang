@@ -3,7 +3,7 @@ Theme Name: Bamero
 Theme URI: https://github.com/Mojig62m/rang
 Author: Bamero
 Description: فروشگاه رنگ و چسب — RTL فارسی، Vazirmatn، ووکامرس
-Version: 2.0.0
+Version: 2.1.0
 Text Domain: bamero
 Requires at least: 6.0
 Requires PHP: 8.0
@@ -163,23 +163,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; }
   align-items: center;
   gap: 12px;
 }
-.header-actions .icon-btn {
-  width: 42px;
-  height: 42px;
-  border: none;
-  background: var(--gray-100);
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--dark);
-  position: relative;
-}
-.header-actions .icon-btn:hover {
-  background: var(--primary);
-  color: #fff;
-}
 .mini-cart-link {
   position: relative;
   display: inline-flex;
@@ -242,21 +225,25 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; }
 .nav-backdrop.is-open { display: block; }
 
 @media (max-width: 767px) {
-  .mobile-menu-toggle { display: flex; }
+  .mobile-menu-toggle { display: flex; position: relative; z-index: 1004; }
   .main-navigation {
     position: fixed;
     top: 0;
     inset-inline-end: 0;
     width: min(320px, 88vw);
     height: 100vh;
+    height: 100dvh; /* iOS/Android dynamic toolbar */
     background: #fff;
     z-index: 1002;
     padding: 72px 24px 24px;
     box-shadow: var(--shadow-lg);
-    transform: translateX(110%);
+    transform: translateX(-110%); /* RTL: drawer sits at inset-inline-end (left); hide off-canvas left */
     transition: transform 0.3s ease;
   }
   .main-navigation.is-open { transform: translateX(0); }
+  .mobile-menu-toggle.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .mobile-menu-toggle.is-open span:nth-child(2) { opacity: 0; }
+  .mobile-menu-toggle.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
   .main-navigation ul {
     flex-direction: column;
     align-items: stretch;
@@ -266,7 +253,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; }
     display: block;
     padding: 12px 8px;
   }
-  .top-bar-contact .top-email { display: none; }
 }
 
 /* ========== PAGE HERO UI-16..18 ========== */
@@ -523,26 +509,6 @@ li.product:hover .product-quick-view {
   border-radius: 12px;
   font-size: 12px;
   color: var(--gray-600);
-}
-.filter-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.filter-chips .chip {
-  border: 1px solid var(--gray-200);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  cursor: pointer;
-  background: #fff;
-  transition: var(--transition);
-}
-.filter-chips .chip:hover,
-.filter-chips .chip.is-active {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: rgba(229, 62, 62, 0.05);
 }
 .button-block {
   display: block;
@@ -848,7 +814,7 @@ html, body { overflow-x: clip; }
 /* 4) Touch targets >= 44px */
 @media (max-width: 767px) {
   a.button, button, .button, input[type="submit"],
-  .mini-cart-link, .icon-btn, .menu-toggle, .mobile-menu-toggle {
+  .mini-cart-link, .menu-toggle, .mobile-menu-toggle {
     min-height: 44px;
     min-width: 44px;
   }
@@ -882,3 +848,51 @@ html, body { overflow-x: clip; }
   .bamero-archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 /* ===== end UI go-live fixes ===== */
+
+/* ===== UI/UX go-live cleanup 2026-10 ===== */
+/* Single skip link (wp_body_open) becomes visible on keyboard focus. */
+.screen-reader-text:focus,
+a.skip-to-content:focus {
+  position: fixed !important;
+  inset-block-start: 10px;
+  inset-inline-start: 10px;
+  inline-size: auto;
+  block-size: auto;
+  margin: 0;
+  padding: 10px 18px;
+  clip: auto !important;
+  white-space: normal;
+  z-index: 100000;
+  background: var(--primary, #0057B8);
+  color: #fff !important;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* Server-rendered back-to-top (footer.php) — RTL-safe, opposite corner of the WhatsApp float. */
+.scroll-to-top {
+  position: fixed;
+  inset-block-end: 24px;
+  inset-inline-end: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 46px;
+  block-size: 46px;
+  border-radius: 50%;
+  background: var(--primary, #0057B8);
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(0, 87, 184, 0.3);
+  z-index: 900;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.scroll-to-top:hover,
+.scroll-to-top:focus-visible {
+  transform: translateY(-3px);
+  color: #fff;
+}
+.scroll-to-top .fas { inline-size: 1em; block-size: 1em; }
+@media (prefers-reduced-motion: reduce) {
+  .scroll-to-top { transition: none; }
+  .scroll-to-top:hover { transform: none; }
+}
