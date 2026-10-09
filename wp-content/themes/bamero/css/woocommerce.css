@@ -299,10 +299,6 @@
     box-shadow: var(--shadow-sm);
 }
 
-.single-product-container .woocommerce-product-gallery__trigger {
-    display: none;
-}
-
 .single-product-container .summary {
     flex: 1;
     min-width: 350px;

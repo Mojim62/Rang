@@ -28,7 +28,7 @@ $address = bamero_address_display();
             <h3><?php echo esc_html__('تماس', 'bamero'); ?></h3>
             <ul>
                 <li><?php echo esc_html__('تلفن: ', 'bamero') . esc_html($phone); ?></li>
-                                <li><?php echo esc_html($address); ?></li>
+                <li><?php echo esc_html($address); ?></li>
             </ul>
         </div>
         <div class="footer-support">
@@ -41,6 +41,9 @@ $address = bamero_address_display();
         <p>&copy; <?php echo esc_html(wp_date('Y')); ?> <?php echo esc_html__('بامرو — همه حقوق محفوظ است.', 'bamero'); ?></p>
     </div>
 </footer>
+<a href="#main-content" class="scroll-to-top" aria-label="<?php echo esc_attr__('بازگشت به بالای صفحه', 'bamero'); ?>">
+    <i class="fas fa-chevron-up" aria-hidden="true"></i>
+</a>
 <?php wp_footer(); ?>
 </body>
 </html>

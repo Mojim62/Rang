@@ -38,7 +38,7 @@ function bamero_format_price_html($product) {
     return $html;
 }
 
-define('BAMERO_VERSION', '2.0.0');
+define('BAMERO_VERSION', '2.1.0');
 define('BAMERO_THEME_DIR', get_template_directory_uri());
 define('BAMERO_THEME_PATH', get_template_directory());
 
@@ -200,9 +200,9 @@ function bamero_maybe_enqueue_add_to_cart() {
     }
     if (is_shop() || is_product() || is_cart() || is_checkout() || is_product_category() || is_product_tag()) {
         wp_enqueue_script('wc-add-to-cart');
-        if (function_exists('is_cart') && (is_cart() || is_checkout())) {
-            wp_enqueue_script('wc-cart-fragments');
-        }
+        // Live cart-count badge on every commerce surface: WooCommerce's own
+        // fragments request refreshes span.cart-count (GATE-03 contract).
+        wp_enqueue_script('wc-cart-fragments');
     }
 }
 add_action('wp_enqueue_scripts', 'bamero_maybe_enqueue_add_to_cart', 20);
@@ -510,16 +510,16 @@ add_action('admin_post_nopriv_bamero_color_consultation', 'bamero_process_color_
 // Remove WooCommerce default styles
 add_filter('woocommerce_enqueue_styles', '__return_empty_array');
 
-// Custom WooCommerce breadcrumb
-function bamero_woocommerce_breadcrumb() {
-    if (function_exists('woocommerce_breadcrumb')) {
-        woocommerce_breadcrumb(array(
-            'delimiter' => ' <i class="fas fa-chevron-left"></i> ',
-            'wrap_before' => '<nav class="woocommerce-breadcrumb" aria-label="مسیر ناوبری">',
-            'wrap_after' => '</nav>',
-        ));
-    }
+// WooCommerce breadcrumb args — canonical filter (the previous wrapper was never
+// registered, so WooCommerce rendered the default English breadcrumb).
+function bamero_woocommerce_breadcrumb_defaults($defaults) {
+    $defaults['delimiter'] = ' <i class="fas fa-chevron-left" aria-hidden="true"></i> ';
+    $defaults['wrap_before'] = '<nav class="woocommerce-breadcrumb" aria-label="' . esc_attr__('مسیر ناوبری', 'bamero') . '">';
+    $defaults['wrap_after'] = '</nav>';
+    $defaults['home'] = __('خانه', 'bamero');
+    return $defaults;
 }
+add_filter('woocommerce_breadcrumb_defaults', 'bamero_woocommerce_breadcrumb_defaults');
 
 // Custom cart fragment
 function bamero_woocommerce_header_add_to_cart_fragment($fragments) {
@@ -547,7 +547,7 @@ add_filter('get_product_search_form', 'bamero_product_search_form');
 
 // Add skip to content link
 function bamero_skip_to_content_link() {
-    echo '<a href="#main-content" class="skip-to-content">برو به محتوا</a>';
+    echo '<a href="#main-content" class="skip-to-content screen-reader-text">' . esc_html__('پرش به محتوا', 'bamero') . '</a>';
 }
 add_action('wp_body_open', 'bamero_skip_to_content_link');
 
