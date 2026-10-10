@@ -21,14 +21,28 @@ if (taxonomy_exists('product_cat')) {
     }
 }
 ?>
+<?php if (function_exists('is_product_taxonomy') && is_product_taxonomy()) : ?>
+<section class="page-hero" aria-label="<?php echo esc_attr__('سربرگ فروشگاه', 'bamero'); ?>">
+    <h1><?php echo esc_html(single_term_title('', false)); ?></h1>
+    <?php if (trim(wp_strip_all_tags(term_description())) !== '') : ?>
+    <div class="page-hero-description"><?php echo wp_kses_post(term_description()); ?></div>
+    <?php endif; ?>
+</section>
+<?php else : ?>
 <section class="page-hero" aria-label="<?php echo esc_attr__('سربرگ فروشگاه', 'bamero'); ?>">
     <h1><?php echo esc_html__('فروشگاه رنگ و ابزار', 'bamero'); ?></h1>
 </section>
-<nav class="breadcrumb-bar" aria-label="<?php echo esc_attr__('مسیر صفحه', 'bamero'); ?>">
-    <a href="<?php echo esc_url(home_url('/')); ?>"><?php echo esc_html__('خانه', 'bamero'); ?></a>
-    <span class="sep">/</span>
-    <span><?php echo esc_html__('فروشگاه', 'bamero'); ?></span>
-</nav>
+<?php endif; ?>
+<?php
+if (function_exists('woocommerce_breadcrumb')) {
+    woocommerce_breadcrumb(array(
+        'delimiter'   => ' <span class="sep">/</span> ',
+        'wrap_before' => '<nav class="breadcrumb-bar" aria-label="' . esc_attr__('مسیر صفحه', 'bamero') . '">',
+        'wrap_after'  => '</nav>',
+        'home'        => __('خانه', 'bamero'),
+    ));
+}
+?>
 
 <main id="main-content" class="shop-page" tabindex="-1">
     <div class="shop-layout">
