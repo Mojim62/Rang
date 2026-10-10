@@ -53,6 +53,10 @@ PR → CI (static-production-gate)
 - WP-Cron و قابل‌نوشتن‌بودن uploads در host واقعی
 - restore از DB backup
 
+## اصلاح B6 (۲۰۲۶-۱۰): مسیر HOME سرور مقصد
+
+`deploy-release.sh` مسیر HOME سرور را یک‌بار پیش از upload به‌صورت literal استخراج می‌کند (`REMOTE_HOME`). رشتهٔ `\$HOME` قبلی برای دو دلیل شکست می‌خورد: scp در OpenSSH با نسخهٔ ۹ و بالاتر به‌صورت پیش‌فرض از پروتکل SFTP استفاده می‌کند که هیچ expand مسیری انجام نمی‌دهد؛ و مسیر پشتیبان DB در production داخل single-quote بود (بدون expand). مسیر literal برای ssh، scp (هر دو پروتکل) و heredoc یکسان کار می‌کند.
+
 ## تفکیک نقش‌ها
 
 - `scripts/quick-install.sh` = **bootstrap** محیط local/staging از source. مسیر deployment نیست.

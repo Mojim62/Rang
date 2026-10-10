@@ -6,6 +6,8 @@
 
 > **وضعیت تحویل:** آمادهٔ استقرار روی **هاست اشتراکی PHP**. کلیدهای زرین‌پال، SMS.ir، دامنه و اطلاعات پایگاه‌داده به‌صورت **placeholder** باقی مانده‌اند تا مالک پروژه در پایان آن‌ها را در فایل `.env` جای‌گذاری کند. راهنمای گام‌به‌گام در [`GO_LIVE_PHP_HOSTING_FA.md`](GO_LIVE_PHP_HOSTING_FA.md) آمده است.
 
+> **به‌روزرسانی ۲۰۲۶-۱۰:** ممیزی کامل UI/UX و پاکسازی go-live در [`UI_UX_GOLIVE_AUDIT_2026-10.md`](UI_UX_GOLIVE_AUDIT_2026-10.md) ثبت شده است؛ سازگاری استاندارد ووکامرس (گالری native و اعلان HPOS) برطرف شد (پوسته ۲.۱.۰، افزونهٔ کاتالوگ ۱.۵.۰). برای انتخاب هاست و مسیر پر-اتوماسیون به [`docs/HOSTING_OPTIONS_FA.md`](docs/HOSTING_OPTIONS_FA.md) مراجعه کنید.
+
 ## ویژگی‌ها
 
 ### ✅ ویژگی‌های کلی
@@ -75,6 +77,9 @@ Rang/
 ├── docs/                         # ADR معماری + مدل تهدید (از استقرار عمومی مستثناست)
 ├── tests/                        # گیت‌های CI + دود-تست استیجینگ (staging_smoke.php)
 ├── scripts/build-release.sh      # سازندهٔ canonical بستهٔ استقرار (wp-config + .htaccess + wp-content)
+├── scripts/deploy-release.sh      # استقرار artifact روی host از طریق SSH (fail-closed؛ GitHub Actions اجرا می‌کند)
+├── scripts/verify-deployment.sh   # راستی‌آزمایی HTTP پس از استقرار
+├── scripts/rollback-release.sh    # بازگشت به release قبلی (فقط تغییر symlink؛ بدون rebuild و بدون تغییر DB)
 └── wp-content/
     ├── uploads/.htaccess         # ممنوعیت اجرای PHP در پوشهٔ آپلود
     ├── themes/
@@ -175,6 +180,9 @@ wp eval-file tests/staging_smoke.php
 
 برای اطلاعات بیشتر، به فایل‌های زیر مراجعه کنید:
 - [GO_LIVE_PHP_HOSTING_FA.md](GO_LIVE_PHP_HOSTING_FA.md) - راهنمای استقرار روی هاست PHP
+- [docs/HOSTING_OPTIONS_FA.md](docs/HOSTING_OPTIONS_FA.md) - مقایسهٔ راهکارهای هاستینگ و مسیر پر-اتوماسیون (۲۰۲۶-۱۰)
+- [docs/DEPLOYMENT_PIPELINE_FA.md](docs/DEPLOYMENT_PIPELINE_FA.md) - معماری پایپ‌لاین استقرار (build-once، promotion، rollback)
+- [UI_UX_GOLIVE_AUDIT_2026-10.md](UI_UX_GOLIVE_AUDIT_2026-10.md) - گزارش ممیزی UI/UX و سازگاری ووکامرس
 - [SECURITY.md](SECURITY.md) - سیاست امنیتی و گزارش آسیب‌پذیری
 - [LICENSE](LICENSE) - متن مجوز MIT
 - [docs/adrs/0001-architecture.md](docs/adrs/0001-architec

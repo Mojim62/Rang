@@ -82,7 +82,18 @@ else
 fi
 
 # ---- 2. upload artifact ------------------------------------------------
-REMOTE_TMP="\$HOME/.bamero-deploy-$$"
+# B6 remediation: resolve the remote HOME once into a LITERAL path. The old
+# "\$HOME" placeholder relied on remote-side shell expansion, which breaks in
+# two places: OpenSSH >= 9 scp defaults to the SFTP protocol, which performs
+# NO shell expansion on remote paths, and the production DB-backup path was
+# single-quoted (also no expansion). A literal absolute path works for ssh,
+# scp (both protocols) and the remote heredoc alike.
+REMOTE_HOME="$($SSH 'printf %s "$HOME"')"
+if [ -z "$REMOTE_HOME" ]; then
+    echo "DEPLOY ABORT: could not resolve remote HOME over SSH." >&2
+    exit 1
+fi
+REMOTE_TMP="$REMOTE_HOME/.bamero-deploy-$"
 $SSH "mkdir -p $REMOTE_TMP"
 
 echo "== upload artifact =="
