@@ -81,6 +81,13 @@ function bamero_setup() {
     // WooCommerce support
     add_theme_support('woocommerce');
 
+    // Native product gallery: lightbox (PhotoSwipe), zoom and thumbnail slider.
+    // WooCommerce only prints the gallery trigger and enqueues its own
+    // gallery scripts when these supports are declared (standard for WC themes).
+    add_theme_support('wc-product-gallery-zoom');
+    add_theme_support('wc-product-gallery-lightbox');
+    add_theme_support('wc-product-gallery-slider');
+
     // HTML5 support
     add_theme_support('html5', array(
         'search-form',

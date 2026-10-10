@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Bamero WooCommerce Setup
  * Description: ایجاد دسته‌بندی، برچسب، کاتالوگ محصولات بامرو (۲۰ کالا) و مشتریان نمونه (۱۰ کاربر) + تنظیمات پایه ووکامرس.
- * Version: 1.4.0
+ * Version: 1.5.0
  * Author: Bamero
  * License: MIT
  * License URI: https://opensource.org/licenses/MIT
@@ -11,7 +11,20 @@
  */
 defined('ABSPATH') || exit;
 
-define('BAMERO_WC_SETUP_VERSION', '1.4.0');
+/**
+ * HPOS (High-Performance Order Storage / custom order tables) compatibility.
+ * This plugin only uses the WooCommerce CRUD API and the Options API; it never
+ * reads or writes order tables directly, so full compatibility is declared.
+ * Without this declaration WooCommerce 9+ lists the plugin as unverified in
+ * the HPOS compatibility report.
+ */
+add_action('before_woocommerce_init', function () {
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+    }
+});
+
+define('BAMERO_WC_SETUP_VERSION', '1.5.0');
 define('BAMERO_WC_SETUP_DIR', plugin_dir_path(__FILE__));
 define('BAMERO_WC_SETUP_IMAGE_DIR', BAMERO_WC_SETUP_DIR . 'assets/products/');
 
