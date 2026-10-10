@@ -7,7 +7,25 @@
  * to ensure all systems are operational before and after Go-Live.
  */
 
-defined('ABSPATH') || exit;
+/*
+ * Standalone entry point: this file may be invoked directly over HTTP
+ * (/health-check.php?token=...) or from the CLI. WordPress must be
+ * bootstrapped for the checks below to run. A fail-closed token
+ * pre-check happens BEFORE the full WordPress boot so an unauthenticated
+ * request can never trigger a costly full-core load (DoS hardening).
+ * The environment-based token check in bamero_health_check() remains the
+ * authoritative gate.
+ */
+if (!defined('ABSPATH')) {
+    if (PHP_SAPI !== 'cli' && empty($_GET['token'])) {
+        http_response_code(403);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo '{"status":"error","message":"Health check token required","timestamp":"' . gmdate('c') . '"}';
+        exit;
+    }
+    require_once __DIR__ . '/wp-load.php';
+}
+
 
 /**
  * Health Check Configuration
@@ -546,9 +564,10 @@ function bamero_check_environment_variables() {
     );
 }
 
-/**
- * Run health check when file is accessed directly
+/*
+ * Run the endpoint. Safe in every context:
+ *  - direct HTTP request: bootstrapped above (token presence pre-checked)
+ *  - CLI: php health-check.php
+ *  - already inside WordPress (wp eval-file): ABSPATH defined, no double boot
  */
-if (php_sapi_name() === 'cli' || isset($_SERVER['REQUEST_METHOD'])) {
-    bamero_health_check();
-}
+bamero_health_check();
