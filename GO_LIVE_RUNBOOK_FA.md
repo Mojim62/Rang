@@ -136,6 +136,7 @@ cookie: wordpress_logged_in_*   woocommerce_items_in_cart*   wp-postpass_*
 
 - روزانه: Health check پنل هاست + تب Actions مانیتور شبانه (issue خودکار در شکست).
 - ابری: آروان مانیتورینگ یا یک uptime-check خارجی روی صفحهٔ اصلی + wp-json.
+- اندپوینت سلامت داخلی: `curl -s "https://دامنه/health-check.php?token=TOKEN" | jq .` — فایل health-check.php همراه بستهٔ استقرار منتقل می‌شود؛ در production الزاماً `BAMERO_HEALTH_TOKEN` را در .env تنظیم کنید (بدون توکن پاسخ ۴۰۳ است و هرگز سلامت کاذب نمی‌دهد).
 - لاگ error هاست را روز اول و روز سوم مرور کنید؛ خطای تکراری = issue گیت.
 - بکاپ: تمدید خودکار هاست فعال؛ یک‌بار در ماه فایل بکاپ را واقعاً restore- تست کنید.
 - پس از اولین ارتقای major ووکامرس: بازبینی WooCommerce > Status برای هشدار قالب‌های قدیمی و دود-تست سبد/تسویه.

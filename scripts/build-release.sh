@@ -6,6 +6,7 @@
 #   ├── wp-config.php
 #   ├── .htaccess
 #   ├── wp-content/
+#   ├── health-check.php
 #   ├── VERSION
 #   └── SHA256SUMS
 # ============================================================================
@@ -18,7 +19,7 @@ OUT="$DIST/bamero-release.zip"
 trap 'rm -rf "$STAGE"' EXIT
 
 # --- پیش‌نیازها (fail-fast) ---
-for f in wp-config.php .htaccess wp-content; do
+for f in wp-config.php .htaccess wp-content health-check.php; do
     if [ ! -e "$ROOT/$f" ]; then
         echo "خطا: $f در ریشهٔ پروژه یافت نشد — بستهٔ استقرار بدون آن معتبر نیست." >&2
         exit 1
@@ -31,9 +32,10 @@ VERSION="$(git -C "$ROOT" describe --tags --always --dirty 2>/dev/null || echo "
 
 mkdir -p "$DIST" "$STAGE/bamero-release"
 
-# --- محتوای مجاز بسته: فقط این سه + متادیتا ---
+# --- محتوای مجاز بسته: فقط این چهار + متادیتا ---
 cp "$ROOT/wp-config.php"  "$STAGE/bamero-release/wp-config.php"
 cp "$ROOT/.htaccess"      "$STAGE/bamero-release/.htaccess"
+cp "$ROOT/health-check.php" "$STAGE/bamero-release/health-check.php"
 cp -R "$ROOT/wp-content"  "$STAGE/bamero-release/wp-content"
 
 # --- پاکسازی هرگونه باقیماندهٔ توسعه از wp-content ---
