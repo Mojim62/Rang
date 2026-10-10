@@ -19,10 +19,10 @@
     "color": {
       "custom": false,
       "palette": [
-        { "name": "Ink", "slug": "ink", "color": "#10233f" },
-        { "name": "Brand", "slug": "brand", "color": "#0b5fa5" },
-        { "name": "Accent", "slug": "accent", "color": "#d9a441" },
-        { "name": "Surface", "slug": "surface", "color": "#f7f9fc" },
+        { "name": "Ink", "slug": "ink", "color": "#152238" },
+        { "name": "Brand", "slug": "brand", "color": "#0057B8" },
+        { "name": "Accent", "slug": "accent", "color": "#F4A300" },
+        { "name": "Surface", "slug": "surface", "color": "#F8F9FA" },
         { "name": "White", "slug": "white", "color": "#ffffff" }
       ]
     },
