@@ -24,7 +24,8 @@ jobs:
       - name: ShellCheck on the release pipeline (errors only)
         run: shellcheck --severity=error scripts/build-release.sh scripts/deploy-release.sh scripts/verify-deployment.sh scripts/rollback-release.sh
       - name: Workflow YAML sanity
-        run: ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each { |f| YAML.safe_load(File.read(f)); puts "OK #{f}" }'
+        run: |
+          ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each { |f| YAML.safe_load(File.read(f)); puts "YAML OK: " + f }'
       - name: Production gate
         run: bash tests/production_gate.sh
       - name: Immutable artifact manifest
