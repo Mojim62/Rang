@@ -61,3 +61,10 @@ PR → CI (static-production-gate)
 
 - `scripts/quick-install.sh` = **bootstrap** محیط local/staging از source. مسیر deployment نیست.
 - `scripts/deploy-release.sh` = **deployment** از artifact ساخته‌شده. هرگز برای deployment به دانلود لحظه‌ای plugin یا خاموش‌کردن `DISALLOW_FILE_MODS` متوسل نمی‌شود.
+
+## لایه‌های تقویتی L2 (۲۰۲۶-۱۰)
+
+۱) گیت static: `bash -n` روی تمام اسکریپت‌های shell، `shellcheck --severity=error` روی چهار اسکریپت پایپ‌لاین استقرار، و اعتبارسنجی YAML گردش‌کارها.
+۲) `deploy-release.sh`: گارد حجم پشتیبان DB (رد dump خالی/گم‌شده پیش از تعویض symlink) و `wp cache flush` پس از تعویض.
+۳) `verify-deployment.sh`: retry سه‌مرحله‌ای برای خطاهای گذر شبکه/5xx (حذف قرمز کاذب) و دو endpoint جدید (cart و my-account).
+۴) `health-monitor.yml` (جدید): راستی‌آزمایی شبانهٔ runtime با issue خودکارِ بدون تکرار؛ URLها به‌عنوان Repository Variables ثبت می‌شوند.

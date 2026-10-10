@@ -19,7 +19,9 @@ check() { # label, url, expected substring (optional)
     local label="$1" target="$2" expect="${3:-}"
     local code
     # M1 remediation: single HTTP request per check (previously two).
-    code=$(curl -sSL --max-time 20 -o /tmp/verify_body -w '%{http_code}' "$target" || echo 000)
+    # L2 hardening: retry transient network/5xx failures so a flaky hop
+    # between GitHub and the host can never fake a red verification.
+    code=$(curl -sSL --retry 3 --retry-delay 2 --max-time 20 -o /tmp/verify_body -w '%{http_code}' "$target" || echo 000)
     if [ "$code" != "200" ]; then
         echo "  FAIL [$label] HTTP $code for $target"
         FAIL=1
@@ -44,6 +46,8 @@ echo "== Post-deploy verification: $URL =="
 check "homepage-https-200" "$URL/"
 check "wp-json"            "$URL/wp-json/"
 check "products"           "$URL/shop/" "bmr"
+check "cart-page"          "$URL/cart/"
+check "my-account"         "$URL/my-account/"
 
 echo "  INFO: browser/mobile rendering, cart/checkout flow, payment and SMS delivery are NOT covered by this script — they require runtime E2E and must be recorded as NOT VERIFIED until executed."
 
