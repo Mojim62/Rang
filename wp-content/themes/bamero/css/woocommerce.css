@@ -1015,4 +1015,12 @@
   body.woocommerce-checkout .single_add_to_cart_button,
   body.woocommerce-cart .single_add_to_cart_button,
   body.has-open-modal .single_add_to_cart_button { position: static; box-shadow: none; }
+
+/* Mobile: keep the floating WhatsApp / back-to-top actions clear of the sticky CTA. */
+@media (max-width: 767px) {
+  body.single-product .whatsapp-float,
+  body.single-product .scroll-to-top {
+    inset-block-end: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+}
 }

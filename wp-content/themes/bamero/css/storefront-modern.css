@@ -1,18 +1,5 @@
-/* Bamero storefront modern UI layer — 2026 */
-:root {
-  --modern-ink: #12243b;
-  --modern-muted: #64748b;
-  --modern-line: #dce6ef;
-  --modern-surface: #ffffff;
-  --modern-soft: #f5f8fb;
-  --modern-blue: #0759a4;
-  --modern-blue-dark: #073b7a;
-  --modern-gold: #f2b63e;
-  --modern-success: #16704a;
-  --modern-radius: 18px;
-  --modern-shadow: 0 12px 34px rgba(18,36,59,.08);
-  --modern-shadow-hover: 0 20px 42px rgba(18,36,59,.14);
-}
+/* Bamero storefront modern UI layer — 2026
+   (includes the merged Modern Commerce 2026 refresh layer; --modern-* tokens live in css/variables.css) */
 
 body {
   color: var(--modern-ink);
@@ -50,7 +37,7 @@ body:before {
 .main-navigation ul { justify-content: center; gap: 6px; }
 .main-navigation a { padding: 8px 10px; border-radius: 10px; font-size: .9rem; }
 .main-navigation a:after { display: none; }
-.main-navigation a:hover, .main-navigation .current-menu-item > a, .main-navigation a[aria-current=page] { color: var(--modern-blue); background: #edf5fb; }
+.main-navigation a:hover, .main-navigation .current-menu-item > a, .main-navigation a[aria-current=page] { color: var(--modern-blue); background: var(--bamero-tint-blue); }
 .header-search { display: flex; align-items: center; min-inline-size: 180px; max-inline-size: 245px; position: relative; }
 .header-search input { inline-size: 100%; min-block-size: 42px; padding-inline: 40px 13px; border: 1px solid var(--modern-line); border-radius: 12px; background: var(--modern-soft); color: var(--modern-ink); }
 .header-search button { position: absolute; inset-inline-start: 8px; inline-size: 30px; block-size: 30px; border: 0; background: transparent; color: var(--modern-muted); cursor: pointer; }
@@ -82,9 +69,9 @@ body:before {
 .bamero-category-card:hover { border-color: #8bb7dc; box-shadow: var(--modern-shadow); }
 .bamero-product-card, .product-card, li.product { border-color: var(--modern-line); box-shadow: 0 8px 24px rgba(18,36,59,.06); }
 .bamero-product-card:hover, .product-card:hover, li.product:hover { box-shadow: var(--modern-shadow-hover); }
-.bamero-product-media { background: #eef4f7; }
+.bamero-product-media { background: var(--bamero-tint-surface); }
 .bamero-product-body h3 { font-size: .96rem; }
-.bamero-product-bottom .add_to_cart_button { min-block-size: 42px; background: var(--modern-blue) !important; color: #fff !important; }
+.bamero-product-bottom .add_to_cart_button { min-block-size: 44px; background: var(--modern-blue) !important; color: #fff !important; }
 
 .shop-layout { grid-template-columns: minmax(0,1fr) 280px; gap: 28px; padding-block: 28px 64px; }
 .shop-products { min-inline-size: 0; }
@@ -92,11 +79,9 @@ body:before {
 .woocommerce-result-count { color: var(--modern-muted); font-size: .86rem; }
 .shop-sidebar { padding: 20px; border: 1px solid var(--modern-line); border-radius: var(--modern-radius); box-shadow: var(--modern-shadow); }
 .sidebar-title { margin-block-end: 12px; padding-block-end: 10px; border-color: var(--modern-gold); font-size: 1rem; }
-.category-list li { padding-block: 8px; border-color: #edf2f6; }
+.category-list li { padding-block: 8px; border-color: var(--bamero-tint-ink); }
 .category-list a { font-size: .88rem; }
 .category-list a:hover { padding-inline-end: 5px; }
-.filter-chips .chip { min-block-size: 40px; padding-inline: 12px; border-color: var(--modern-line); }
-.filter-chips .chip:hover, .filter-chips .chip.is-active, .filter-chips .chip.active { color: var(--modern-blue); border-color: var(--modern-blue); background: #edf5fb; }
 .button-block { min-block-size: 44px; border-width: 1px; border-color: var(--modern-blue); }
 
 .woocommerce ul.products { gap: 18px; }
@@ -108,7 +93,7 @@ li.product .product-title { margin-block-end: 8px !important; }
 li.product .product-category { min-block-size: 22px; color: var(--modern-muted); font-size: .78rem; }
 li.product .product-availability { margin-block: 3px 10px; color: var(--modern-success); font-size: .72rem; font-weight: 800; }
 li.product .price { color: var(--modern-blue); font-size: 1rem; }
-li.product a.add_to_cart_button { inline-size: auto !important; min-inline-size: 42px; block-size: 42px !important; border-radius: 12px !important; background: #edf5fb !important; color: var(--modern-blue) !important; }
+li.product a.add_to_cart_button { inline-size: auto !important; min-inline-size: 44px; block-size: 44px !important; border-radius: 12px !important; background: var(--bamero-tint-blue) !important; color: var(--modern-blue) !important; }
 li.product a.add_to_cart_button:before { inline-size: 17px; block-size: 17px; }
 li.product a.add_to_cart_button:hover { background: var(--modern-blue) !important; color: #fff !important; }
 li.product .product-quick-view { position: static; display: block; padding: 0 16px 14px; transform: none; background: transparent; color: var(--modern-blue); text-align: start; font-size: .78rem; }
@@ -127,7 +112,7 @@ li.product .product-quick-view:hover { text-decoration: underline; }
 .woocommerce-cart-form { padding: 8px; overflow-x: auto; border: 1px solid var(--modern-line); border-radius: var(--modern-radius); background: #fff; box-shadow: var(--modern-shadow); }
 .woocommerce table.shop_table { border: 0; border-collapse: separate; border-spacing: 0; }
 .woocommerce table.shop_table th { padding: 14px 12px; color: var(--modern-muted); font-size: .8rem; font-weight: 800; }
-.woocommerce table.shop_table td { padding: 16px 12px; border-top: 1px solid #edf2f6; vertical-align: middle; }
+.woocommerce table.shop_table td { padding: 16px 12px; border-top: 1px solid var(--bamero-tint-ink); vertical-align: middle; }
 .woocommerce table.shop_table td.product-name a { font-weight: 800; }
 .woocommerce table.shop_table td.product-thumbnail img { inline-size: 70px; block-size: 70px; object-fit: cover; border-radius: 12px; }
 .woocommerce .quantity .qty { min-block-size: 42px; inline-size: 76px; border-color: var(--modern-line); border-radius: 10px; }
@@ -181,5 +166,206 @@ li.product .product-quick-view:hover { text-decoration: underline; }
   .woocommerce ul.products { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .bamero-product-card:hover, .product-card:hover, li.product:hover { transform: none; }
+}
+
+/* ==========================================================================
+   Bamero — Modern Commerce 2026 refresh layer
+   اصول: خوانایی، Mobile-first، RTL واقعی، جستجوی همیشه در دسترس،
+   کارت ساده، بدون شلوغی. این لایه بعد از storefront-modern لود می‌شود
+   و فقط refine می‌کند؛ معماری و منطق را تغییر نمی‌دهد.
+   ========================================================================== */
+
+/* --- ۱. تایپوگرافی و خوانایی (بنیاد UX فارسی) --- */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-size: 16px;
+  line-height: 1.8;               /* ارتفاع خط مناسب فارسی */
+  letter-spacing: 0;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3, h4 { line-height: 1.5; letter-spacing: -0.01em; }
+p  { line-height: 1.9; }
+.bamero-hero-lead, .bamero-service-panel p { max-inline-size: 62ch; } /* طول خط خوانا */
+.price, .bamero-price, .cart-count, .woocommerce-Price-amount {
+  font-feature-settings: "ss01";
+  font-variant-numeric: tabular-nums;   /* اعداد یکنواخت در قیمت‌ها */
+}
+
+/* --- ۲. آرام‌سازی بصری: سایه‌ها و افکت‌ها به‌جای حذف، ملایم می‌شوند --- */
+.bamero-product-card, .product-card, li.product {
+  box-shadow: 0 2px 10px rgba(18, 36, 59, 0.05);
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.bamero-product-card:hover, .product-card:hover, li.product:hover {
+  box-shadow: 0 6px 18px rgba(18, 36, 59, 0.09);
+  transform: translateY(-2px);
+}
+.bamero-hero { box-shadow: 0 10px 28px rgba(7, 48, 91, 0.10); }
+.bamero-product-media img { transition: none; }
+
+/* --- ۳. جستجو: همیشه در دسترس (مهم‌ترین گپ UX) ---
+   دسکتاپ: فرم هدر می‌ماند؛ موبایل: نوار چسبان اختصاصی زیر هدر */
+.bamero-mobile-search {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.97);
+  border-block-end: 1px solid var(--modern-line, #dce6ef);
+}
+.bamero-mobile-search form { display: flex; gap: 8px; margin: 0; }
+.bamero-mobile-search input {
+  flex: 1;
+  min-block-size: 46px;
+  padding-inline: 14px;
+  border: 1px solid var(--modern-line, #dce6ef);
+  border-radius: 12px;
+  background: var(--modern-soft, #f5f8fb);
+  font-size: 1rem;              /* ≥16px: جلوگیری از zoom خودکار iOS */
+  font-family: inherit;
+}
+.bamero-mobile-search input:focus {
+  outline: none;
+  border-color: var(--modern-blue, #0759a4);
+  box-shadow: 0 0 0 3px rgba(7, 89, 164, 0.14);
+}
+.bamero-mobile-search button {
+  min-inline-size: 46px;
+  min-block-size: 46px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--modern-blue, #0759a4);
+  color: #fff;
+  cursor: pointer;
+}
+@media (max-width: 900px) {
+  .bamero-mobile-search { display: block; }
+}
+
+/* فرم جستجوی مشترک (404 / نتایج جستجو) — هماهنگ با نوار موبایل */
+.bamero-searchform {
+  display: flex;
+  gap: 8px;
+  max-inline-size: 560px;
+  margin-block: 14px;
+}
+.bamero-searchform .search-field {
+  flex: 1;
+  min-block-size: 48px;
+  padding-inline: 14px;
+  border: 1px solid var(--modern-line, #dce6ef);
+  border-radius: 12px;
+  background: var(--modern-soft, #f5f8fb);
+  font-size: 1rem;
+  font-family: inherit;
+}
+.bamero-searchform .search-field:focus {
+  outline: none;
+  border-color: var(--modern-blue, #0759a4);
+  box-shadow: 0 0 0 3px rgba(7, 89, 164, 0.14);
+}
+.bamero-searchform .search-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 48px;
+  min-block-size: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--modern-blue, #0759a4);
+  color: #fff;
+  cursor: pointer;
+}
+.error-404 .bamero-searchform, .bamero-empty-state .bamero-searchform { margin-inline: auto; }
+
+/* --- ۴. کارت محصول: ساده، شفاف، با وضعیت موجودی --- */
+.bamero-stock-flag {
+  display: inline-block;
+  margin-block-end: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.bamero-stock-flag.is-out { background: #fdeaea; color: #b42323; }
+.bamero-stock-flag.is-low { background: #fff4e0; color: #a15c00; }
+.bamero-product-body h3 a { color: var(--modern-ink, #12243b); }
+.bamero-product-body h3 a:hover { color: var(--modern-blue, #0759a4); }
+.bamero-product-bottom .add_to_cart_button,
+li.product a.add_to_cart_button {
+  font-weight: 700;
+}
+li.product a.add_to_cart_button.is-out-of-stock { opacity: 0.55; pointer-events: none; }
+
+/* --- ۵. فرم‌ها و checkout: RTL واقعی و لمس‌پذیر --- */
+.woocommerce form .form-row input.input-text,
+.woocommerce form .form-row select,
+.woocommerce form .form-row textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  direction: rtl;               /* ورودی فارسی همیشه RTL */
+  text-align: start;
+}
+.woocommerce form .form-row select { appearance: none; background-image: linear-gradient(45deg, transparent 49%, #64748b 50%), linear-gradient(-45deg, transparent 49%, #64748b 50%); background-position: calc(0% + 14px) calc(50% - 3px), calc(0% + 19px) calc(50% - 3px); background-size: 5px 5px; background-repeat: no-repeat; }
+label { cursor: pointer; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+.bamero-category-card:focus-visible, .bamero-product-media:focus-visible {
+  outline: 3px solid rgba(7, 89, 164, 0.55);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* --- ۶. صفحهٔ محصول: نقطهٔ تصمیم خرید --- */
+.woocommerce div.product .product_title { line-height: 1.6; }
+.woocommerce div.product p.price {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--modern-blue, #0759a4);
+}
+.woocommerce div.product div.summary p.stock {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.woocommerce div.product div.summary p.stock.in-stock { background: #e7f4ec; color: #16704a; }
+.woocommerce div.product div.summary p.stock.out-of-stock { background: #fdeaea; color: #b42323; }
+.woocommerce div.product form.cart { margin-block: 18px; }
+.woocommerce div.product form.cart .button {
+  min-block-size: 48px;
+  min-inline-size: 190px;
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+.woocommerce div.product div.woocommerce-product-gallery img { border-radius: 14px; }
+.woocommerce-tabs ul.tabs li a { font-weight: 700; }
+.related.products h2, .upsells h2 { font-size: 1.3rem; }
+
+/* --- ۷. موبایل-first: لمس، فاصله و ناوبری --- */
+@media (max-width: 767px) {
+  .bamero-hero { margin-block: 14px 40px; border-radius: 18px; }
+  .bamero-hero-lead { font-size: 0.95rem; }
+  .bamero-hero-proof { gap: 10px; }
+  .bamero-hero-proof small { font-size: 0.7rem; }
+  .bamero-category-grid { gap: 10px; }
+  .bamero-category-card { min-block-size: 64px; padding: 10px 12px; }
+  .bamero-section-heading { flex-direction: column; gap: 6px; align-items: flex-start; }
+  .bamero-product-body h3 { font-size: 0.92rem; }
+  .woocommerce ul.products { gap: 12px; }
+  li.product .product-info { padding: 12px 12px 14px; }
+  .woocommerce div.product form.cart .button { inline-size: 100%; }
+  .woocommerce div.product div.summary { margin-block-start: 16px; }
+  .woocommerce-checkout .col2-set .col-1, .woocommerce-checkout .col2-set .col-2 { padding: 16px; }
+  .footer-grid { padding-inline: 16px; }
+  /* نکته: CTA چسبان موبایلِ صفحهٔ محصول در css/woocommerce.css (single_add_to_cart_button،
+     fixed + safe-area) از قبل پیاده و کامل است — این لایه چیزی به آن اضافه نمی‌کند. */
+}
+
+/* --- ۸. کاهش حرکت برای کاربران حساس --- */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   .bamero-product-card:hover, .product-card:hover, li.product:hover { transform: none; }
 }
