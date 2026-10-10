@@ -93,7 +93,7 @@ if [ -z "$REMOTE_HOME" ]; then
     echo "DEPLOY ABORT: could not resolve remote HOME over SSH." >&2
     exit 1
 fi
-REMOTE_TMP="$REMOTE_HOME/.bamero-deploy-$"
+REMOTE_TMP="$REMOTE_HOME/.bamero-deploy"
 $SSH "mkdir -p $REMOTE_TMP"
 
 echo "== upload artifact =="
