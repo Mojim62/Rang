@@ -10,9 +10,8 @@ defined('ABSPATH') || exit;
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <link rel="icon" href="<?php echo esc_url(BAMERO_THEME_DIR . '/images/favicon.png'); ?>" type="image/png">
-    <link rel="apple-touch-icon" href="<?php echo esc_url(BAMERO_THEME_DIR . '/images/logo.png'); ?>">
-    <link rel="preload" href="<?php echo esc_url(BAMERO_THEME_DIR . '/assets/fonts/Vazirmatn-wght.woff2'); ?>" as="font" type="font/woff2" crossorigin>
+    <link rel="icon" href="<?php echo esc_url(BAMERO_THEME_DIR . '/images/favicon.svg'); ?>" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="<?php echo esc_url(BAMERO_THEME_DIR . '/images/logo.svg'); ?>">
     <?php wp_head(); ?>
 </head>
 <body <?php body_class('rtl'); ?>>
@@ -60,7 +59,7 @@ defined('ABSPATH') || exit;
     <div class="container header-inner">
         <div class="logo">
             <a href="<?php echo esc_url(home_url('/')); ?>" class="site-logo-link" aria-label="بامرو">
-                <img src="<?php echo esc_url(BAMERO_THEME_DIR . '/images/logo.png'); ?>"
+                <img src="<?php echo esc_url(BAMERO_THEME_DIR . '/images/logo.svg'); ?>"
                      alt="بامرو"
                      class="site-logo-img logo-mark"
                      width="48"
@@ -113,7 +112,7 @@ defined('ABSPATH') || exit;
         <div class="header-actions">
             <a href="<?php echo esc_url(function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/')); ?>" class="mini-cart-link bamero-mini-cart" aria-label="<?php echo esc_attr__('سبد خرید', 'bamero'); ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                <span class="cart-count"><?php echo (function_exists('WC') && WC()->cart) ? esc_html((string) WC()->cart->get_cart_contents_count()) : '۰'; ?></span>
+                <span class="cart-count"><?php echo (function_exists('WC') && WC()->cart) ? esc_html(bamero_persian_digits((string) WC()->cart->get_cart_contents_count())) : '۰'; ?></span>
             </a>
         </div>
     </div>

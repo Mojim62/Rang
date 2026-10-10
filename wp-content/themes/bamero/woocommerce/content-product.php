@@ -43,7 +43,7 @@ $swatch_label = $ral_code ? $ral_code : ($swatch !== '#F8F9FA' ? $swatch : 'کد
                 </div>
             <?php endif; ?>
         </a>
-        <a class="product-quick-view" href="<?php echo esc_url($product->get_permalink()); ?>"><?php echo esc_html__('مشاهده سریع', 'bamero'); ?></a>
+        <a class="product-quick-view" href="<?php echo esc_url($product->get_permalink()); ?>"><?php echo esc_html__('مشاهده محصول', 'bamero'); ?></a>
     </div>
 
     <div class="product-info">

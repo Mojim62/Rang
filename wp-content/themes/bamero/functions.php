@@ -38,7 +38,7 @@ function bamero_format_price_html($product) {
     return $html;
 }
 
-define('BAMERO_VERSION', '2.1.0');
+define('BAMERO_VERSION', '2.2.0');
 define('BAMERO_THEME_DIR', get_template_directory_uri());
 define('BAMERO_THEME_PATH', get_template_directory());
 
@@ -116,6 +116,14 @@ function bamero_setup() {
 add_action('after_setup_theme', 'bamero_setup');
 
 // ===== ENQUEUE STYLES AND SCRIPTS =====
+/**
+ * Enqueue design tokens, stylesheets and the main script.
+ *
+ * The WooCommerce stylesheets load only on commerce surfaces (shop, product,
+ * taxonomy, cart, checkout, account) and on search — the product grid renders
+ * there as well. Every other page skips that CSS payload. The Modern Commerce
+ * 2026 refresh was merged into storefront-modern.css (single file, one enqueue).
+ */
 function bamero_scripts() {
     // Design tokens first
     wp_enqueue_style(
@@ -147,47 +155,48 @@ function bamero_scripts() {
         BAMERO_VERSION
     );
 
-    // WooCommerce styles
-    wp_enqueue_style(
-        'bamero-woocommerce',
-        BAMERO_THEME_DIR . '/css/woocommerce.css',
-        array('bamero-style'),
-        BAMERO_VERSION
-    );
+    // WooCommerce styles — commerce surfaces only (conditional enqueue).
+    $bamero_is_commerce = (function_exists('is_woocommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page())) || is_search();
 
-    // RTL WooCommerce styles (always for this Persian theme)
-    wp_enqueue_style(
-        'bamero-woocommerce-rtl',
-        BAMERO_THEME_DIR . '/css/woocommerce-rtl.css',
-        array('bamero-woocommerce'),
-        BAMERO_VERSION
-    );
+    $bamero_storefront_dep = array('bamero-style');
+    if ($bamero_is_commerce) {
+        wp_enqueue_style(
+            'bamero-woocommerce',
+            BAMERO_THEME_DIR . '/css/woocommerce.css',
+            array('bamero-style'),
+            BAMERO_VERSION
+        );
 
+        // RTL WooCommerce styles (always, on the same surfaces as above).
+        wp_enqueue_style(
+            'bamero-woocommerce-rtl',
+            BAMERO_THEME_DIR . '/css/woocommerce-rtl.css',
+            array('bamero-woocommerce'),
+            BAMERO_VERSION
+        );
+
+        $bamero_storefront_dep = array('bamero-woocommerce-rtl');
+    }
+
+    // Modern storefront layer (Modern Commerce 2026 refresh merged in).
     wp_enqueue_style(
         'bamero-storefront-modern',
         BAMERO_THEME_DIR . '/css/storefront-modern.css',
-        array('bamero-woocommerce-rtl'),
+        $bamero_storefront_dep,
         BAMERO_VERSION
     );
 
-    // Modern Commerce 2026 refresh — خوانایی، موبایل-فرست و جستجوی همیشه‌در‌دسترس
-    wp_enqueue_style(
-        'bamero-modern-commerce-2026',
-        BAMERO_THEME_DIR . '/css/modern-commerce-2026.css',
-        array('bamero-storefront-modern'),
-        BAMERO_VERSION
-    );
-
-    // Main script
+    // Main script — vanilla core (drawer, quantity guard, coverage calculator).
+    // jQuery becomes a dependency only on commerce surfaces, where WooCommerce loads it.
+    $bamero_script_deps = $bamero_is_commerce ? array('jquery') : array();
     wp_enqueue_script(
         'bamero-script',
         BAMERO_THEME_DIR . '/js/main.js',
-        array('jquery'),
+        $bamero_script_deps,
         BAMERO_VERSION,
         true
     );
 }
-
 add_action('wp_enqueue_scripts', 'bamero_scripts');
 
 function bamero_preload_primary_font() {
@@ -220,6 +229,9 @@ add_action('wp_enqueue_scripts', 'bamero_maybe_enqueue_add_to_cart', 20);
 // Change WooCommerce texts to Persian
 function bamero_woocommerce_persian_text($translated_text, $text, $domain) {
     if ($domain === 'woocommerce') {
+        // Static cache: build the map once per request instead of on every gettext call.
+        static $translations = null;
+        if ($translations === null) {
         $translations = array(
             'Add to cart' => 'افزودن به سبد خرید',
             'Shop' => 'فروشگاه',
@@ -269,7 +281,8 @@ function bamero_woocommerce_persian_text($translated_text, $text, $domain) {
             'Coupon has been applied successfully' => 'کد تخفیف با موفقیت اعمال شد',
             'Sorry, this coupon does not exist' => 'متأسفانه این کد تخفیف معتبر نیست',
             'Please enter a coupon code' => 'لطفاً کد تخفیف را وارد کنید',
-        );
+            );
+        }
 
         if (isset($translations[$text])) {
             return $translations[$text];
@@ -532,7 +545,7 @@ add_filter('woocommerce_breadcrumb_defaults', 'bamero_woocommerce_breadcrumb_def
 function bamero_woocommerce_header_add_to_cart_fragment($fragments) {
     $count = (function_exists('WC') && WC()->cart) ? (int) WC()->cart->get_cart_contents_count() : 0;
     // Selector must match header.php: span.cart-count (GATE-03)
-    $fragments['span.cart-count'] = '<span class="cart-count">' . esc_html((string) $count) . '</span>';
+    $fragments['span.cart-count'] = '<span class="cart-count">' . esc_html(bamero_persian_digits((string) $count)) . '</span>';
     return $fragments;
 }
 add_filter('woocommerce_add_to_cart_fragments', 'bamero_woocommerce_header_add_to_cart_fragment');
@@ -542,7 +555,7 @@ function bamero_product_search_form($form) {
     $form = '<form role="search" method="get" class="woocommerce-product-search" action="' . esc_url(home_url('/')) . '">';
     $field_id = 'woocommerce-product-search-field-' . uniqid();
     $form .= '<label class="screen-reader-text" for="' . esc_attr($field_id) . '">' . _x('Search for:', 'label', 'woocommerce') . '</label>';
-    $form .= '<input type="search" id="' . esc_attr($field_id) . '" class="search-field" placeholder="' . esc_attr__('جستجوی محصولات...', 'bamero') . '" value="' . get_search_query() . '" name="s" />';
+    $form .= '<input type="search" id="' . esc_attr($field_id) . '" class="search-field" placeholder="' . esc_attr__('جستجوی محصولات...', 'bamero') . '" value="' . esc_attr(get_search_query()) . '" name="s" />';
     $form .= '<button type="submit" value="' . esc_attr_x('Search', 'submit button', 'woocommerce') . '"><i class="fas fa-search"></i></button>';
     $form .= '<input type="hidden" name="post_type" value="product" />';
     $form .= '</form>';
@@ -571,21 +584,6 @@ add_filter('the_generator', 'bamero_remove_wp_version_rss');
 
 // Disable XML-RPC
 add_filter('xmlrpc_enabled', '__return_false');
-
-// Remove REST API links from head
-remove_action('wp_head', 'rest_output_link_wp_head');
-remove_action('wp_head', 'wp_oembed_add_discovery_links');
-
-// Disable emojis
-function bamero_disable_emojis() {
-    remove_action('wp_head', 'print_emoji_detection_script', 7);
-    remove_action('admin_print_scripts', 'print_emoji_detection_script');
-    remove_action('wp_print_styles', 'print_emoji_styles');
-    remove_action('admin_print_styles', 'print_emoji_styles');
-    remove_filter('the_content_feed', 'wp_staticize_emoji');
-    remove_filter('comment_text_rss', 'wp_staticize_emoji');
-}
-add_action('init', 'bamero_disable_emojis');
 
 // ===== PERFORMANCE IMPROVEMENTS =====
 
@@ -662,7 +660,7 @@ function bamero_output_entity_graph() {
 
     $site_name = get_bloginfo('name') ?: 'بامرو';
     $site_url  = home_url('/');
-    $logo      = BAMERO_THEME_DIR . '/images/logo.png';
+    $logo      = BAMERO_THEME_DIR . '/images/logo.svg';
     $phone     = bamero_phone_e164();
     $address   = bamero_address_display();
 
@@ -677,8 +675,8 @@ function bamero_output_entity_graph() {
                 'logo'  => array(
                     '@type'  => 'ImageObject',
                     'url'    => $logo,
-                    'width'  => 1264,
-                    'height' => 1244,
+                    'width'  => 512,
+                    'height' => 512,
                 ),
                 'sameAs' => array_filter(array(
                     get_theme_mod('bamero_instagram_url', ''),
@@ -832,6 +830,13 @@ add_action('wp_head', 'bamero_meta_robots', 1);
 function bamero_disable_bloat() {
     remove_action('wp_head', 'wp_oembed_add_discovery_links');
     remove_action('wp_head', 'rest_output_link_wp_head');
+    // Emoji bloat — single canonical owner (deduplicated from the former bamero_disable_emojis).
+    remove_action('wp_head', 'print_emoji_detection_script', 7);
+    remove_action('admin_print_scripts', 'print_emoji_detection_script');
+    remove_action('wp_print_styles', 'print_emoji_styles');
+    remove_action('admin_print_styles', 'print_emoji_styles');
+    remove_filter('the_content_feed', 'wp_staticize_emoji');
+    remove_filter('comment_text_rss', 'wp_staticize_emoji');
     remove_action('wp_head', 'rsd_link');
     remove_action('wp_head', 'wlwmanifest_link');
     remove_action('wp_head', 'wp_shortlink_wp_head');
