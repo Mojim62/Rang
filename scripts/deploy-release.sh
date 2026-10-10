@@ -105,6 +105,14 @@ if [ "$TARGET" = "production" ]; then
     $SSH "if [ ! -d '$DOCROOT' ]; then echo 'DEPLOY ABORT: no existing release under $DOCROOT — bootstrap the first release per GO_LIVE_PHP_HOSTING_FA.md before production deploys.' >&2; exit 1; fi"
     $SSH "cd '$DOCROOT' && wp db export '$REMOTE_TMP/pre-deploy-backup.sql'" \
         || { echo "DEPLOY ABORT: mandatory pre-deploy DB backup failed." >&2; exit 1; }
+    # L2 hardening: a "successful" export of 0 bytes is not a backup. Refuse to
+    # switch the symlink on an empty or missing dump.
+    BACKUP_SIZE="$($SSH "stat -c %s '$REMOTE_TMP/pre-deploy-backup.sql' 2>/dev/null" || echo 0)"
+    if [ "$BACKUP_SIZE" -lt 1024 ]; then
+        echo "DEPLOY ABORT: pre-deploy DB backup is empty or missing ($BACKUP_SIZE bytes)." >&2
+        exit 1
+    fi
+    echo "production: DB backup OK ($BACKUP_SIZE bytes)"
 fi
 
 # ---- 4. stage release dir + atomic-ish symlink switch --------------------
@@ -139,5 +147,8 @@ if [ -z "$WP_OK" ]; then
     echo "POST-DEPLOY HEALTH FAIL: wp core not reachable in $DOCROOT." >&2
     exit 1
 fi
+# L2 hardening: flush the object cache after the symlink switch so no visitor
+# can hit a mix of old/new code paths through stale cache entries.
+$SSH "cd '$DOCROOT' && wp cache flush" || echo "WARN: wp cache flush failed (non-fatal)."
 echo "post-deploy wp health: OK ($WP_OK)"
 echo "DEPLOY OK: $TARGET @ releases/$RELEASE_TAG"

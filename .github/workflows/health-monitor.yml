@@ -1,0 +1,69 @@
+name: Nightly health monitor
+# L2 hardening: scheduled runtime verification of the live URLs.
+# Failures open a tracking issue (deduplicated) so regressions surface
+# within 24h instead of waiting for customer reports.
+#
+# Owner configuration (Settings -> Secrets and variables -> Actions -> Variables):
+#   PRODUCTION_URL, STAGING_URL  (repository VARIABLES, not secrets - a public
+#   site URL is not a credential; variables also avoid blocking scheduled runs
+#   on environment approvals).
+# Until the variables exist the jobs are skipped - fail-closed, noise-free.
+on:
+  schedule:
+    - cron: '17 21 * * *' # 21:17 UTC = 00:47 Asia/Tehran, daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: health-monitor
+  cancel-in-progress: false
+
+jobs:
+  production:
+    if: ${{ vars.PRODUCTION_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run HTTP verification
+        run: bash scripts/verify-deployment.sh "${{ vars.PRODUCTION_URL }}"
+      - name: Open tracking issue on failure (deduplicated)
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+          EXISTING=$(gh issue list --state open --search "health-monitor production" --json number --jq 'length')
+          if [ "$EXISTING" = "0" ]; then
+            gh issue create \
+              --title "health-monitor: production verification failed ($(date -u +%F))" \
+              --body "Nightly HTTP verification failed for $TARGET_URL.
+          Full log: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          Checked endpoints: homepage, wp-json, shop, cart, my-account." || true
+          fi
+
+  staging:
+    if: ${{ vars.STAGING_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run HTTP verification
+        run: bash scripts/verify-deployment.sh "${{ vars.STAGING_URL }}"
+      - name: Open tracking issue on failure (deduplicated)
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_URL: ${{ vars.STAGING_URL }}
+        run: |
+          EXISTING=$(gh issue list --state open --search "health-monitor staging" --json number --jq 'length')
+          if [ "$EXISTING" = "0" ]; then
+            gh issue create \
+              --title "health-monitor: staging verification failed ($(date -u +%F))" \
+              --body "Nightly HTTP verification failed for $TARGET_URL.
+          Full log: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          Checked endpoints: homepage, wp-json, shop, cart, my-account." || true
+          fi
