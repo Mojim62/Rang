@@ -58,6 +58,7 @@ function bamero_load_env_file(): void {
             $value = trim($value);
 
             if ($key === '') {
+
                 continue;
             }
 
@@ -113,7 +114,8 @@ function bamero_require_env(string $key): string {
 
 define('DB_NAME', bamero_require_env('DB_NAME'));
 define('DB_USER', bamero_require_env('DB_USER'));
-define('DB_PASSWORD', bamero_require_env('DB_PASSWORD'));
+define('DB_PASSWORD', bamero_require_env('DB_PASSWO
+RD'));
 define('DB_HOST', bamero_require_env('DB_HOST'));
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
@@ -156,10 +158,19 @@ $bamero_wp_cache = getenv('WP_CACHE');
 define('WP_CACHE', filter_var($bamero_wp_cache !== false ? $bamero_wp_cache : '0', FILTER_VALIDATE_BOOLEAN));
 define('CONCATENATE_SCRIPTS', false);
 
+/**
+ * Optional: disable WordPress in-request cron when the host schedules a real
+ * cron job (recommended for production; see GO_LIVE_RUNBOOK_FA.md, section 3).
+ * Leave unset or 0 to keep the WordPress default behavior.
+ */
+$bamero_disable_cron = getenv('DISABLE_WP_CRON');
+define('DISABLE_WP_CRON', filter_var($bamero_disable_cron !== false ? $bamero_disable_cron : '0', FILTER_VALIDATE_BOOLEAN));
+
 define('EMPTY_TRASH_DAYS', 14);
 define('WP_POST_REVISIONS', 5);
 define('AUTOSAVE_INTERVAL', 120);
-define('WP_MEMORY_LIMIT', '256M');
+define('WP_MEMORY_LIM
+IT', '256M');
 define('WP_MAX_MEMORY_LIMIT', '512M');
 
 $env_type = getenv('WP_ENVIRONMENT_TYPE');
