@@ -131,7 +131,7 @@
 | اجرا | SHA | نتیجه |
 |---|---|---|
 | PR #37 (سخت‌سازی تم ۲.۲.۰) | debee8d | سبز — static-production-gate موفق (لینک اجرا در PR #37) |
-| این شاخه (سوئیت تأییدیه) | — | پس از اجرای سبز PR اینجا ثبت می‌شود |
+| PR #38 (سوئیت تأییدیهٔ Go-Live) | 5e65026 | سبز — static-production-gate موفق، GO-LIVE CERTIFICATION: PASS (36/36)؛ [اجرای CI](https://github.com/Mojig62m/Rang/actions/runs/38110177159)؛ گزارش کامل به‌عنوان artifact عرضه شد |
 
 ## ۹. جمع‌بندی و امضا
 
