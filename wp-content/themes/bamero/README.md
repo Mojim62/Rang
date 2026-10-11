@@ -2,12 +2,15 @@
 
 تم سفارشی فروشگاه **بامرو** برای WordPress + WooCommerce، کاملاً RTL و فارسی (fa-IR).
 
+نسخهٔ فعلی: **۲.۲.۰** — معماری ماژولار (functions.php فقط bootstrap است و منطق در هفت ماژول inc/ قرار دارد).
+
 ## فایل‌های اصلی
 
 | فایل | نقش |
 |------|-----|
 | `style.css` | شناسنامهٔ تم + استایل‌های پایه |
-| `functions.php` | راه‌اندازی تم، enqueue دارایی‌ها، فیلدهای محصول، Schema، امنیت، تنظیمات تم |
+| `functions.php` | bootstrap سبک: ثابت‌ها و بارگذاری مرتب ماژول‌های inc/ |
+| `inc/` | هفت ماژول موضوعی: helpers، setup، woocommerce، seo، performance، security، forms |
 | `header.php` | سربالا، نوار بالا، منوی چسبان، جستجو، سبد خرید |
 | `footer.php` | پاورقی، اطلاعات تماس، لینک‌های سریع |
 | `front-page.php` | صفحهٔ اصلی (hero، دسته‌ها، محصولات) |
@@ -16,7 +19,7 @@
 | `404.php` / `about.php` / `contact.php` | قالب‌های صفحات ویژه |
 | `theme.json` | تنظیمات بلوک‌ادیتور و پالت رنگ |
 | `css/` | متغیرها، آیکون‌ها، استایل‌ها، WooCommerce، RTL، storefront |
-| `js/main.js` | تعاملات سمت کاربر |
+| `js/main.js` | تعاملات سمت کاربر — vanilla-first؛ jQuery فقط روی سطوح تجارت |
 | `woocommerce/` | بازنویسی قالب‌های WooCommerce |
 
 ## تنظیمات قابل‌پیکربندی (سفارشی‌سازی)
