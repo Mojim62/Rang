@@ -61,9 +61,9 @@ ck C1 "product search form escapes the query (XSS)"   'grep -qF "esc_attr(get_se
 ck C2 "GATE-03: cart fragment selector key span.cart-count"   'grep -q "fragments\[.span.cart-count.\]" "$THEME/inc/woocommerce.php"'
 ck C3 "GATE-03: header renders span.cart-count"   'grep -qF "<span class=\"cart-count\">" "$THEME/header.php"'
 ck C4 "every JSON-LD block carries a CSP nonce"   '! grep -rn "application/ld+json" "$THEME" --include="*.php" | grep -v "nonce=" | grep -q .'
-ck C5 "CSP nonce callback guarded (plugin owns the canonical definition)"   'grep -q "function_exists(.bamero_csp_nonce.)" "$THEME/inc/security.php"'
+ck C5 "CSP nonce callback guarded (plugin owns the canonical definition)"   'grep -qE "function_exists\( ?.bamero_csp_nonce" "$THEME/inc/security.php"'
 ck C6 "wp_generator removed from wp_head"   'grep -q "remove_action(.wp_head., .wp_generator.)" "$THEME/functions.php"'
-ck C7 "XML-RPC methods disabled"   'grep -q "xmlrpc_methods" "$THEME/inc/security.php"'
+ck C7 "XML-RPC disabled via xmlrpc_enabled filter"   'grep -q "xmlrpc_enabled" "$THEME/inc/security.php"'
 
 echo
 echo "[D] Asset and dead-code hygiene"
