@@ -305,6 +305,7 @@ make logs
 - [FAST_TRACK_DEPLOY_FA.md](FAST_TRACK_DEPLOY_FA.md) - استقرار سریع
 - [UI_UX_GOLIVE_AUDIT_2026-10.md](UI_UX_GOLIVE_AUDIT_2026-10.md) - ممیزی و پاکسازی UI/UX پیش از Go-Live
 - [THEME_GOLIVE_HARDENING_2026-10.md](THEME_GOLIVE_HARDENING_2026-10.md) - سخت‌سازی نهایی تم بامرو برای Go-Live (تم ۲.۲.۰، شاخهٔ fix/theme-golive-hardening)
+- [GO_LIVE_CERTIFICATION_FA.md](GO_LIVE_CERTIFICATION_FA.md) - تأییدیهٔ رسمی Go-Live با سوئیت تأییدیهٔ استاتیک ۳۶چکی در گیت CI
 
 ---
 

@@ -28,6 +28,11 @@ jobs:
           ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each { |f| YAML.safe_load(File.read(f)); puts "YAML OK: " + f }'
       - name: Production gate
         run: bash tests/production_gate.sh
+      - name: Go-live certification (static)
+        run: |
+          mkdir -p artifact
+          set -o pipefail
+          bash tests/go_live_certification.sh | tee artifact/go-live-certification.txt
       - name: Immutable artifact manifest
         run: |
           mkdir -p artifact

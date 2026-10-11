@@ -16,7 +16,7 @@
 #   make docker-down    - Stop Docker containers
 # =============================================================================
 
-.PHONY: help install setup deploy validate test db-backup db-restore reset rollback docker-up docker-down
+.PHONY: help install setup deploy validate test certify db-backup db-restore reset rollback docker-up docker-down
 
 # =============================================================================
 # Help
@@ -30,6 +30,7 @@ help:
 	@echo "    make setup          - Setup Bamero plugins and settings"
 	@echo "    make test           - Run all tests"
 	@echo "    make validate       - Validate configuration"
+	@echo "    make certify        - Run the static go-live certification suite"
 	@echo ""
 	@echo "  Database:"
 	@echo "    make db-backup      - Backup database"
@@ -102,6 +103,13 @@ deploy:
 validate:
 	@echo "🔹 Validating configuration..."
 	./scripts/validate.sh
+
+# =============================================================================
+# Go-Live Certification (static acceptance suite)
+# =============================================================================
+certify:
+	@echo "🔹 Running go-live certification suite..."
+	bash tests/go_live_certification.sh
 
 # =============================================================================
 # Run Tests
